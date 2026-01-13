@@ -184,7 +184,7 @@ async def manual_entry(payload: dict, db: Session = Depends(get_db)):
     """), {"hc": record.hs_code, "desc": record.description})
     db.commit()
     
-    return {"status": "SUCCESS", "hs_code": record.hs_code, "cleaned_data": record.dict()}
+    return {"status": "SUCCESS", "hs_code": record.hs_code, "cleaned_data": record.model_dump()}
 
 @router.post("/ingestion/{source_identifier}/start")
 async def start_ingestion(

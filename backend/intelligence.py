@@ -121,7 +121,7 @@ def run_scoring_engine(db: Session):
       AND recommendation.country_id = scoring_data.country_id;
     """
     
-    result = db.execute(text(scoring_sql), {"now": datetime.now()})
+    result = db.execute(text(scoring_sql), {"now": datetime.now().isoformat()})
     db.commit()
     
     logger.info(f"Scoring Engine Completed. Rows updated: {result.rowcount}")

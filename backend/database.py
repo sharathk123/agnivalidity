@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey, UniqueConstraint, Index, TEXT
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./exim_insight.db"
 
