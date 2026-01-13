@@ -7,11 +7,15 @@ import uvicorn
 import os
 from reportlab.pdfgen import canvas
 from database import SessionLocal, HSCode, Country, MarketDemand, PriceBand, CertificationRequirement, Certification, CertificationNotes, RiskScoreSummary, RiskScoreDetail, Recommendation, init_db
+from admin import router as admin_router
 
 # Initialize DB on startup
 init_db()
 
-app = FastAPI(title="EXIM Insight India - Rule-based Validation MVP")
+app = FastAPI(title="EXIM Insight India - Enterprise SaaS")
+
+# Include admin router
+app.include_router(admin_router)
 
 # Dependency
 def get_db():
