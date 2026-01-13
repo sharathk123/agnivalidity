@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Terminal, Radio, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Terminal } from 'lucide-react';
 
 interface LogEntry {
     id: number;

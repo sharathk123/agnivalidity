@@ -420,21 +420,26 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
     result = None
 
     # helper for mock logs
-    async def log(level, msg):
+    async def log(level, *args):
+        # Handle varargs to support both (level, msg) and (level, component, msg)
+        if len(args) == 2:
+            # signature: (level, component, msg) -> We ignore component or prepend it
+            msg = f"[{args[0]}] {args[1]}"
+        elif len(args) == 1:
+            # signature: (level, msg)
+            msg = args[0]
+        else:
+            msg = " ".join(map(str, args))
+            
         await push_log(level, source_name, msg)
 
     await log("INFO", f"Worker started for {source_name}")
 
     try:
         # 1. DGFT HS Mapper
-        if source_name == "DGFT_ITCHS_MASTER":
+        if source_name in ["DGFT_ITCHS_MASTER", "DGFT_HS_MASTER"]:
             from ingestors.dgft_ingestor import run_dgft_ingestor_task
-            await run_dgft_ingestor_task(db, source_id, dry_run=dry_run, log_callback=log)
-            # This one doesn't return result dict yet, handle individually for now
-            db.execute(text("UPDATE ingestion_sources SET last_run_status='SUCCESS' WHERE id=:id"), {"id": source_id})
-            db.commit()
-            await log("SUCCESS", "DGFT Master Sync Completed.")
-            return
+            result = await run_dgft_ingestor_task(db, source_id, dry_run=dry_run, log_callback=log)
 
         # 2. ISO Country List
         elif source_name == "ISO_COUNTRY_LIST":
@@ -462,7 +467,12 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
             from ingestors.odop_ingestor import run_odop_ingestor_task
             result = await run_odop_ingestor_task(db, source_id, dry_run=dry_run, log_callback=log)
 
-        # 5. Default Simulation
+        # 5. TIA Analytics Hub (Market Demand)
+        elif source_name == "TIA_ANALYTICS_HUB":
+            from ingestors.demand_ingestor import run_demand_ingestor_task
+            result = await run_demand_ingestor_task(db, source_id, dry_run=dry_run, log_callback=log)
+
+        # 6. Default Simulation
         else:
             await log("INFO", "Initializing connection...")
             await asyncio.sleep(1)

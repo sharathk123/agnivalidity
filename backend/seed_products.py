@@ -34,6 +34,30 @@ def seed_export_products():
                 "RoDTEP_Y_N": "Y",
                 "Schema_Ver": "v1.1"
             })
+        },
+        {
+            "hs_code": "0904111000", # Black Pepper
+            "description": "Black Pepper (Garbled) - Malabar Grade",
+            "rodtep_rate": 0.038, # 3.8%
+            "dbk_rate": 0.015,
+            "gst_refund_rate": 0.05,
+            "json_template": json.dumps({"RoDTEP_Y_N": "Y"})
+        },
+        {
+            "hs_code": "6204422000", # Textiles
+            "description": "Womens Dresses - Cotton (Handloom)",
+            "rodtep_rate": 0.043,
+            "dbk_rate": 0.031,
+            "gst_refund_rate": 0.12,
+            "json_template": json.dumps({"RoDTEP_Y_N": "Y"})
+        },
+        {
+            "hs_code": "0901111100", # Coffee
+            "description": "Arabica Coffee (Plantation A)",
+            "rodtep_rate": 0.012,
+            "dbk_rate": 0.010,
+            "gst_refund_rate": 0.05,
+            "json_template": json.dumps({"RoDTEP_Y_N": "Y"})
         }
     ]
     

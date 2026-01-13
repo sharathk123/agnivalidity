@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Calculator, FileText, CheckCircle, ArrowRight, Zap, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { Calculator, FileText, ArrowRight, Zap, ShieldCheck, BadgeCheck } from 'lucide-react';
 
 interface PricePredictionWidgetProps {
     baseCost: number;
@@ -177,13 +177,13 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                     <button
                         onClick={onGenerateQuote}
                         disabled={isGeneratingQuote}
-                        className="w-full mt-8 bg-slate-100 hover:bg-white text-slate-900 h-10 rounded text-[10px] font-black uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.1)] group"
+                        className="w-full mt-8 bg-slate-100 hover:bg-white text-slate-900 h-10 px-4 rounded text-[10px] font-black uppercase tracking-[0.1em] transition-all flex items-center justify-between gap-3 shadow-[0_0_15px_rgba(255,255,255,0.1)] group"
                     >
-                        {isGeneratingQuote ? <div className="w-3 h-3 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" /> : (
+                        {isGeneratingQuote ? <div className="w-3 h-3 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin mx-auto" /> : (
                             <>
-                                <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                                 <span>Generate Compliance JSON</span>
-                                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform ml-1" />
                             </>
                         )}
                     </button>

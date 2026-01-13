@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingUp, Activity, Zap, Layers } from 'lucide-react';
+import { TrendingUp, Activity, Zap } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { SeasonalitySignalCard } from './SeasonalitySignalCard';
 
@@ -130,7 +130,7 @@ export const MarketTrends: React.FC = () => {
                                     contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '4px' }}
                                     itemStyle={{ fontFamily: 'JetBrains Mono', fontSize: '12px' }}
                                     labelStyle={{ fontFamily: 'JetBrains Mono', color: '#94a3b8', fontSize: '10px', marginBottom: '4px' }}
-                                    formatter={(value: number) => [`$${value}`, viewMode === 'PRICE' ? 'Global Price' : 'Profit']}
+                                    formatter={(value: any) => [`$${value}`, viewMode === 'PRICE' ? 'Global Price' : 'Profit']}
                                 />
                                 <Area
                                     type="monotone"
@@ -159,17 +159,4 @@ export const MarketTrends: React.FC = () => {
     );
 };
 
-const TrendCard = ({ icon, title, metric, sub }: any) => (
-    <div className="p-5 bg-slate-950/50 border border-slate-800 rounded flex flex-col justify-between hover:border-indigo-500/30 hover:bg-slate-900/80 transition-all cursor-default group/card shadow-[0_0_15px_rgba(79,70,229,0.05)]">
-        <div className="flex items-start justify-between mb-4">
-            <div className="p-2 bg-slate-900 rounded border border-slate-800 text-slate-400 group-hover/card:text-indigo-400 group-hover/card:border-indigo-500/20 transition-colors">
-                {icon}
-            </div>
-            <div className="text-lg font-bold text-emerald-400 font-mono tracking-tighter drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]">{metric}</div>
-        </div>
-        <div>
-            <div className="text-xs font-bold text-slate-300 uppercase tracking-tighter mb-1 font-display">{title}</div>
-            <div className="text-[10px] text-slate-500 font-mono font-medium">{sub}</div>
-        </div>
-    </div>
-);
+

@@ -3,7 +3,7 @@ import { ChevronLeft, Terminal, AlertTriangle, Play, Trash2, FileJson } from 'lu
 
 export const QuarantineTerminal: React.FC = () => {
     // Mock Data for Rejection Feed
-    const [rejections, setRejections] = useState([
+    const [rejections] = useState([
         { id: 1, timestamp: '2026-01-13 18:42:12', source: 'SRC-001/ICEGATE_LINK', error: 'ERR_SCHEMA_MISMATCH', payload: '{ "hsn": "1006.30", "val": "INVALID" }' },
         { id: 2, timestamp: '2026-01-13 18:42:15', source: 'SRC-004/GSTN_API', error: 'ERR_AUTH_FAILURE', payload: '{ "gstin": "29AAAAA0000A1Z5", "token": "***" }' },
         { id: 3, timestamp: '2026-01-13 18:42:45', source: 'SRC-001/ICEGATE_LINK', error: 'ERR_FIELD_MISSING', payload: '{ "shipping_bill_no": null }' },

@@ -39,15 +39,17 @@ h6 {
 
   0%,
   100% {
-    opacity: 0.2;
-    transform: scale(1);
+    opacity: 0.15;
+    transform: scale(0.98);
   }
 
   50% {
-    opacity: 0.5;
+    opacity: 0.4;
     transform: scale(1.1);
   }
 }
+
+
 
 .animate-pulse-slow {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -57,14 +59,37 @@ h6 {
 
   0%,
   100% {
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));
   }
 
   50% {
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
   }
 }
 
+
+
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
+}
+
+/* ☢️ Nuclear Leaflet Glassmorphism Overrides */
+.leaflet-tooltip.glass-tooltip,
+.leaflet-tooltip-top.glass-tooltip,
+.leaflet-tooltip-bottom.glass-tooltip,
+.leaflet-tooltip-left.glass-tooltip,
+.leaflet-tooltip-right.glass-tooltip {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-width: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: inherit !important;
+  filter: none !important;
+}
+
+.leaflet-tooltip-top.glass-tooltip::before {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+  display: none !important;
 }

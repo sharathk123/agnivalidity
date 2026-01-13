@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, LayoutGrid, BarChart3, Settings, Database, Server, Activity, TrendingUp, DollarSign, Globe, Boxes } from 'lucide-react';
+import { Cpu, Settings, Server, Activity, TrendingUp, DollarSign, Globe, Boxes } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
     const path = window.location.pathname;

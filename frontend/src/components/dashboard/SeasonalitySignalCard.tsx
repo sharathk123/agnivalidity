@@ -5,7 +5,7 @@ const mockMonthlyData = [85, 88, 92, 98, 110, 115, 108, 95, 90, 88, 86, 84]; // 
 
 export const SeasonalitySignalCard: React.FC = () => {
     const currentMonthIndex = new Date().getMonth();
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
 
     // Normalize data for SVG path (height 60px)
     const maxVal = Math.max(...mockMonthlyData);

@@ -23,7 +23,7 @@ const containerVariants = {
 
 const itemVariants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
-    show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 50 } }
+    show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 50 } } as any
 };
 
 export const IntelligenceDashboard: React.FC = () => {
@@ -36,9 +36,16 @@ export const IntelligenceDashboard: React.FC = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [quoteHistory, setQuoteHistory] = useState<{ number: string, url: string, created_at: string }[]>([]);
 
+    const [error, setError] = useState<string | null>(null);
+
     const analyzeProduct = async (searchInput: string) => {
         if (!searchInput) return;
         setLoading(true);
+        setError(null);
+
+        // Enforce a "Cinematic" minimum scan time of 1.5 seconds
+        const scanTimer = new Promise(resolve => setTimeout(resolve, 1500));
+
         try {
             let hsCode = searchInput;
             if (searchInput.length >= 10 && !isNaN(Number(searchInput))) {
@@ -50,23 +57,26 @@ export const IntelligenceDashboard: React.FC = () => {
                 }
             }
 
-            const calcRes = await axios.get(`${API_BASE}/advisory/calculate`, {
-                params: { hs_code: hsCode, base_cost: baseCost, logistics: logistics }
-            });
-            // Simulate delay for effect if needed, but API might be fast
-            if (Date.now() % 2 === 0) await new Promise(r => setTimeout(r, 800));
+            // Run API and Timer in parallel
+            const [calcRes] = await Promise.all([
+                axios.get(`${API_BASE}/advisory/calculate`, {
+                    params: { hs_code: hsCode, base_cost: baseCost, logistics: logistics }
+                }),
+                scanTimer
+            ]);
 
-            // MOCK: Inject GI Logic for Turmeric
-            const enhancedData = {
-                ...calcRes.data,
-                gi_status: hsCode.startsWith('091030') ? 'REGISTERED' : 'N/A',
-                brand_lineage: hsCode.startsWith('091030') ? 'Invaluable Treasures of Incredible India' : null
-            };
-
-            setInsight(enhancedData);
-        } catch (err) {
+            setInsight(calcRes.data);
+        } catch (err: any) {
             console.error(err);
+            // Ensure we finish the scan animation even on error
+            await scanTimer;
+
             setInsight(null);
+            if (err.response && err.response.status === 404) {
+                setError("Product not found in Agni Verified Database. Please try a different HS Code.");
+            } else {
+                setError("Connection failure. Please ensure the backend server is running.");
+            }
         } finally {
             setLoading(false);
         }
@@ -152,7 +162,7 @@ export const IntelligenceDashboard: React.FC = () => {
             {/* Main Display Area */}
             <div className="flex-1 relative min-h-[400px]">
                 {/* IDLE STATE */}
-                {!insight && !loading && (
+                {!insight && !loading && !error && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center opacity-50">
                         {/* Decorative Grid */}
                         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
@@ -169,6 +179,25 @@ export const IntelligenceDashboard: React.FC = () => {
                                 <span className="w-1.5 h-3 bg-indigo-500 animate-pulse"></span>
                                 <span className="text-[10px] font-mono text-indigo-400">CURSOR_ACTIVE</span>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ERROR STATE */}
+                {error && !loading && !insight && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-20 animate-in fade-in zoom-in duration-300">
+                        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md text-center shadow-[0_0_50px_rgba(220,38,38,0.2)]">
+                            <div className="w-16 h-16 mx-auto bg-rose-500/10 rounded-full flex items-center justify-center mb-6 border border-rose-500/20">
+                                <div className="text-2xl">⚠️</div>
+                            </div>
+                            <h3 className="text-xl font-bold font-display text-white tracking-wide mb-2">ANALYSIS INTERRUPTED</h3>
+                            <p className="text-sm font-mono text-rose-400 mb-6 px-4">{error}</p>
+                            <button
+                                onClick={() => setError(null)}
+                                className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-black uppercase tracking-widest transition-all border border-slate-700 hover:border-slate-600"
+                            >
+                                Acknowledge
+                            </button>
                         </div>
                     </div>
                 )}
@@ -226,7 +255,7 @@ export const IntelligenceDashboard: React.FC = () => {
                             {/* Column 3: Global Heatmap (Right) */}
                             <motion.div variants={itemVariants} className="col-span-12 xl:col-span-4 flex flex-col gap-6">
                                 <div className="flex-1">
-                                    <GlobalHeatmap />
+                                    <GlobalHeatmap insight={insight} />
                                 </div>
 
                                 {/* Product Verdict Card (Small) */}
@@ -235,7 +264,7 @@ export const IntelligenceDashboard: React.FC = () => {
                                     <div className={`text-4xl font-black font-display tracking-tight ${insight.verdict === 'GO' ? 'text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'text-rose-400'}`}>
                                         {insight.verdict}
                                     </div>
-                                    <div className="text-[10px] font-mono text-slate-500 mt-2">CONFIDENCE: 98.4%</div>
+                                    <div className="text-[10px] font-mono text-slate-500 mt-2">CONFIDENCE: {insight.confidence}%</div>
                                 </div>
                             </motion.div>
                         </motion.div>
