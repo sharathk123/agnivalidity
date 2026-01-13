@@ -80,12 +80,20 @@ async def run_dgft_ingestor_task(
     db: Session, 
     source_id: int, 
     chapters: List[int] = [9, 10, 52, 61, 62], # Spices, Rice, Cotton, Apparels
-    dry_run: bool = True
+    dry_run: bool = True,
+    log_callback: Optional[callable] = None
 ):
     """
     Main background task for DGFT Ingestion.
     """
     start_time = datetime.now()
+    
+    async def log(level, msg):
+        if log_callback:
+            await log_callback(level, "DGFT_WORKER", msg)
+            
+    await log("INFO", f"Starting ingestion cycle (Dry Run: {dry_run})")
+    
     log_entry = {
         "source_id": source_id,
         "run_type": "DRY_RUN" if dry_run else "FULL",
@@ -99,18 +107,31 @@ async def run_dgft_ingestor_task(
     
     try:
         # 1. Pre-flight Validation
+        await log("INFO", "Running pre-flight checks...")
         validation = validate_before_ingestion("DGFT_ITCHS_MASTER", db)
         if not validation["can_proceed"]:
+            await log("ERROR", f"Pre-flight failed: {validation['checks']}")
             raise Exception(f"Pre-flight failed: {validation['checks']}")
-            
+        
+        await log("INFO", "Pre-flight passed. Starting chapter scan.")
         total_records = 0
         
         # 2. Iterate Chapters
         for chapter in chapters:
+            await log("INFO", f"Scanning Chapter {chapter}...")
             html = await fetch_dgft_chapter_html(chapter)
             raw_records = parse_dgft_html(html)
+            await log("INFO", f"Chapter {chapter}: Found {len(raw_records)} candidates")
+            
+            if len(raw_records) == 0:
+                 # Potential Schema Drift: Page loaded but no table found
+                 await log("WARNING", f"Chapter {chapter}: No records found. Possible Schema Drift?")
+                 log_entry["schema_drift_detected"] = True
+                 # We don't abort immediately, as some chapters might be empty/reserved, 
+                 # but we flag it for Admin attention.
             
             # 3. Validate & Upsert
+            imported_count = 0
             for record in raw_records:
                 try:
                     # Validate schema
@@ -148,10 +169,13 @@ async def run_dgft_ingestor_task(
                                 "code": valid_rec.hs_code
                             })
                             log_entry["records_inserted"] += 1
+                        imported_count += 1
                             
                 except Exception as e:
                     log_entry["records_skipped"] += 1
-                    
+            
+            await log("INFO", f"Chapter {chapter}: Imported {imported_count} records")
+            
             if not dry_run:
                 db.commit()
                 

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 
 interface LogEntry {
     timestamp: string;
-    level: 'INFO' | 'WARNING' | 'ERROR';
+    level: string;
     source: string;
     message: string;
 }
@@ -11,31 +11,27 @@ export const LogConsole: React.FC = () => {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Mock log stream for demo (Replace with SSE later)
     useEffect(() => {
-        const interval = setInterval(() => {
-            const sources = ['DGFT_WORKER', 'ICEGATE_GUARD', 'TRADESTAT_SCRAPER'];
-            const levels: ('INFO' | 'WARNING' | 'ERROR')[] = ['INFO', 'INFO', 'INFO', 'WARNING'];
-            const msgs = [
-                'Fetching page 1...',
-                'Parsed 50 records successfully',
-                'Rate limit approach (80%)',
-                'Connection reset by peer, retrying...',
-                'Schema validation passed (v1.5)',
-                'Skipping duplicate record'
-            ];
+        // SSE Connection
+        const eventSource = new EventSource('http://localhost:8000/admin/ingestion/stream');
 
-            const newLog: LogEntry = {
-                timestamp: new Date().toISOString().split('T')[1].split('.')[0],
-                level: levels[Math.floor(Math.random() * levels.length)],
-                source: sources[Math.floor(Math.random() * sources.length)],
-                message: msgs[Math.floor(Math.random() * msgs.length)]
-            };
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                setLogs(prev => [...prev.slice(-99), data]); // Keep last 100 logs
+            } catch (e) {
+                console.error("Failed to parse log", e);
+            }
+        };
 
-            setLogs(prev => [...prev.slice(-49), newLog]);
-        }, 2000);
+        eventSource.onerror = (e) => {
+            console.error("SSE Error", e);
+            eventSource.close();
+        };
 
-        return () => clearInterval(interval);
+        return () => {
+            eventSource.close();
+        };
     }, []);
 
     useEffect(() => {
@@ -55,14 +51,17 @@ export const LogConsole: React.FC = () => {
                 </div>
             </div>
             <div ref={scrollRef} className="p-4 overflow-y-auto flex-1 space-y-1">
+                {logs.length === 0 && <div className="text-gray-600 italic">Waiting for connection...</div>}
+
                 {logs.map((log, i) => (
-                    <div key={i} className="flex gap-3">
+                    <div key={i} className="flex gap-3 text-xs md:text-sm">
                         <span className="text-gray-600 shrink-0">{log.timestamp}</span>
-                        <span className={`shrink-0 w-20 ${log.level === 'ERROR' ? 'text-red-500' :
-                                log.level === 'WARNING' ? 'text-yellow-500' : 'text-blue-500'
+                        <span className={`shrink-0 w-16 font-bold ${log.level === 'ERROR' ? 'text-red-500' :
+                                log.level === 'WARNING' ? 'text-yellow-500' :
+                                    log.level === 'SUCCESS' ? 'text-green-500' : 'text-blue-500'
                             }`}>{log.level}</span>
-                        <span className="text-gray-500 shrink-0 w-32">[{log.source}]</span>
-                        <span className="text-gray-300">{log.message}</span>
+                        <span className="text-gray-500 shrink-0 w-32 truncate">[{log.source}]</span>
+                        <span className="text-gray-300 break-all">{log.message}</span>
                     </div>
                 ))}
                 <div className="animate-pulse text-green-500">_</div>

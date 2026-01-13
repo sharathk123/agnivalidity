@@ -3,14 +3,50 @@ Admin API Router
 Handles ingestion control, status monitoring, and system settings.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Set
 from pydantic import BaseModel
+import asyncio
+import json
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+# ================================================================
+# REAL-TIME LOG BROADCASTER (Simple Pub/Sub)
+# ================================================================
+
+class LogBroadcaster:
+    def __init__(self):
+        self.connections: Set[asyncio.Queue] = set()
+
+    async def connect(self) -> asyncio.Queue:
+        queue = asyncio.Queue()
+        self.connections.add(queue)
+        return queue
+
+    def disconnect(self, queue: asyncio.Queue):
+        self.connections.remove(queue)
+
+    async def broadcast(self, message: dict):
+        for queue in self.connections:
+            await queue.put(message)
+
+# Global singleton
+log_broadcaster = LogBroadcaster()
+
+# Helper to push logs from anywhere
+async def push_log(level: str, source: str, message: str):
+    payload = {
+        "timestamp": datetime.now().strftime("%H:%M:%S"),
+        "level": level,
+        "source": source,
+        "message": message
+    }
+    await log_broadcaster.broadcast(payload)
 
 # Pydantic models for API responses
 class IngestionSource(BaseModel):
@@ -304,6 +340,33 @@ async def admin_dashboard_health(db: Session = Depends(get_db)):
     }
 
 
+@router.get("/ingestion/stream")
+async def stream_logs(request: Request):
+    """
+    SSE Endpoint for real-time admin logs.
+    """
+    queue = await log_broadcaster.connect()
+    
+    async def event_generator():
+        try:
+            while True:
+                # Check for client disconnect
+                if await request.is_disconnected():
+                    break
+                
+                # Get message
+                try:
+                    data = await asyncio.wait_for(queue.get(), timeout=1.0)
+                    yield f"data: {json.dumps(data)}\n\n"
+                except asyncio.TimeoutError:
+                    # Keep-alive
+                    yield ": keep-alive\n\n"
+                    
+        finally:
+            log_broadcaster.disconnect(queue)
+    
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 # ================================================================
 # BACKGROUND WORKER DISPATCHER
 # ================================================================
@@ -315,23 +378,42 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
     """
     from database import SessionLocal
     
+    # helper for mock logs
+    async def log(level, msg):
+        await push_log(level, source_name, msg)
+
+    await log("INFO", f"Worker started for {source_name}")
+
     # 1. DGFT HS Mapper
     if source_name == "DGFT_ITCHS_MASTER":
-        from ingestors.dgft_ingestor import run_dgft_ingestor_worker
-        # Run blocking sync worker in thread pool
-        import asyncio
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, run_dgft_ingestor_worker, source_id, dry_run)
+        from ingestors.dgft_ingestor import run_dgft_ingestor_task
+        from database import SessionLocal
+        
+        db = SessionLocal()
+        try:
+            # Direct async await
+            await run_dgft_ingestor_task(db, source_id, dry_run=dry_run, log_callback=push_log)
+        except Exception as e:
+            await log("ERROR", f"Worker failed: {e}")
+        finally:
+            db.close()
         return
 
     # 2. ISO Country List
     if source_name == "ISO_COUNTRY_LIST":
         from ingestors.country_ingestor import run_country_ingestor
         
+        await log("INFO", "Fetching country data from REST API...")
         db = SessionLocal()
         try:
-            # Country ingestor is sync
-            result = run_country_ingestor(db, dry_run=dry_run)
+            # Country ingestor is sync, run in thread pool if heavy, but it's fast enough or we can wrap
+            # For strict async correctness:
+            import asyncio
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(None, lambda: run_country_ingestor(db, dry_run=dry_run))
+            
+            await log("INFO", f"Fetched {result['records_fetched']} countries")
+            await log("INFO", f"Inserted: {result['records_inserted']}, Updated: {result['records_updated']}")
             
             # Log result (manually here as country_ingestor returns dict)
             db.execute(text("""
@@ -365,6 +447,8 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
             })
             db.commit()
             
+        except Exception as e:
+            await log("ERROR", f"Country ingestion failed: {e}")
         finally:
             db.close()
         return
@@ -376,13 +460,18 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
     
     try:
         # Simulate ingestion work
-        time.sleep(2)  # Simulate network/processing time
+        await log("INFO", "Initializing connection...")
+        await asyncio.sleep(1)
+        await log("INFO", "Fetching data page 1/5...")
+        await asyncio.sleep(1) 
         
         # Mock results
         records_fetched = 10
         records_inserted = 5 if not dry_run else 0
         records_updated = 3 if not dry_run else 0
         records_skipped = 2
+        
+        await log("INFO", f"Processed {records_inserted + records_updated} records")
         
         # Log success
         db.execute(text("""
@@ -412,8 +501,10 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
         """), {"id": source_id, "updated": records_inserted + records_updated})
         
         db.commit()
+        await log("SUCCESS", "Job completed successfully")
         
     except Exception as e:
+        await log("ERROR", f"Job failed: {e}")
         # Log failure
         db.execute(text("""
             INSERT INTO ingestion_logs 

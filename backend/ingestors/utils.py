@@ -259,8 +259,9 @@ def validate_before_ingestion(source_name: str, db_session) -> Dict[str, Any]:
             "message": f"Source is {source[1] or 'IDLE'}"
         })
     
-    # Check 3: ICEGATE version (for ICEGATE sources)
-    if "ICEGATE" in source_name:
+    # Check 3: ICEGATE version (for ICEGATE and DGFT sources)
+    # DGFT data must align with ICEGATE classification, so we block if schema drifts.
+    if "ICEGATE" in source_name or "DGFT" in source_name:
         icegate_check = check_icegate_schema_version(db_session)
         if icegate_check["status"] == "CODE_UPDATE_REQUIRED":
             validation["can_proceed"] = False
