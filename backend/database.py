@@ -109,7 +109,15 @@ class Recommendation(Base):
     country_id = Column(Integer, ForeignKey("country.id"), nullable=False)
     recommendation = Column(TEXT, nullable=False) # GO | CAUTION | AVOID
     rationale = Column(TEXT, nullable=False)
+    calculated_at = Column(TEXT)
     __table_args__ = (UniqueConstraint('hs_code_id', 'country_id'),)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
