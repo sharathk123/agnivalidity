@@ -11,19 +11,7 @@ const LandingPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-brand-100 selection:text-brand-900 overflow-x-hidden relative">
-            {/* Regulatory Patch Footer (Sticky) */}
-            <div className="fixed bottom-0 left-0 w-full bg-slate-900 text-white py-2 px-4 z-[100] border-t border-slate-800">
-                <div className="w-full max-w-[1440px] mx-auto flex items-center justify-center gap-6 text-[9px] font-black uppercase tracking-[0.2em]">
-                    <span className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        ICES 1.5 ACTIVE (SYNC: OK)
-                    </span>
-                    <span className="text-slate-700">|</span>
-                    <span>2026 MANDATORY JSON V1.1 VALIDATION ACTIVE</span>
-                    <span className="text-slate-700">|</span>
-                    <span className="text-brand-400">QUARANTINE PROTOCOLS ENGAGED</span>
-                </div>
-            </div>
+
 
             {/* Navigation (Dark Mode for Hero) */}
             <nav className="absolute top-0 left-0 w-full z-50 border-b border-white/5 bg-slate-950/50 backdrop-blur-sm">

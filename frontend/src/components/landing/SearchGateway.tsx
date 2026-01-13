@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, ShieldCheck, Activity } from 'lucide-react';
+import { Zap, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SearchGateway: React.FC = () => {
@@ -19,37 +19,6 @@ const SearchGateway: React.FC = () => {
 
     return (
         <div className="relative w-full max-w-3xl mx-auto z-20">
-            {/* Floating Intelligence HUD - Left (ICES 1.5) */}
-            <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="absolute -left-32 top-1/2 -translate-y-1/2 hidden xl:flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-md"
-            >
-                <div className="relative flex items-center justify-center w-2 h-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                </div>
-                <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-                    ICES 1.5 Sync
-                    <span className="block text-[9px] text-emerald-500">Optimal</span>
-                </div>
-            </motion.div>
-
-            {/* Floating Intelligence HUD - Right (Schema Validated) */}
-            <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                className="absolute -right-36 top-1/2 -translate-y-1/2 hidden xl:flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-md"
-            >
-                <ShieldCheck className="w-3.5 h-3.5 text-brand-400" />
-                <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-                    2026 Schema
-                    <span className="block text-[9px] text-brand-400">Validated</span>
-                </div>
-            </motion.div>
-
             {/* Main Search Component */}
             <motion.form
                 initial={{ scale: 0.95, opacity: 0 }}

@@ -130,7 +130,7 @@ export const ProductInsightView: React.FC = () => {
     }, [baseCost, logistics]);
 
     return (
-        <div className="p-10 space-y-10 animate-fade-in max-w-7xl mx-auto min-h-[80vh] flex flex-col">
+        <div className="space-y-10 animate-fade-in flex flex-col w-full">
             {/* Context Header */}
             <div className="flex justify-between items-end">
                 <div className="max-w-xl">
@@ -140,38 +140,43 @@ export const ProductInsightView: React.FC = () => {
                         Analyze hidden margins, policy benefits, and generate compliance-ready quotations for the 2026 Indian EXIM sector.
                     </p>
                 </div>
-                <div className="flex items-center gap-6">
-                    <div className="text-right">
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">System Health</div>
-                        <div className="flex items-center gap-1.5 justify-end">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-                            <span className="text-[11px] font-bold uppercase tracking-tight text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]">Sync Optimal</span>
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
-            {/* Global Search Bar - Linear Style */}
-            <div className="bg-slate-900 border border-slate-700/50 p-1 flex items-center gap-4 focus-within:border-indigo-500/50 transition-all shadow-none relative z-20">
-                <div className="w-12 h-12 flex items-center justify-center text-slate-600">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            {/* Search Terminal: Intelligence Port */}
+            <div className={`relative z-20 transition-all duration-300 rounded-xl p-1 bg-slate-900/40 backdrop-blur-md border ${query.length === 10 ? 'border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'border-slate-700/50 focus-within:border-indigo-500/50 focus-within:shadow-[0_0_30px_rgba(99,102,241,0.2)]'}`}>
+                <div className="flex items-center gap-4 p-2">
+                    <div className="w-12 h-12 flex items-center justify-center text-slate-500 bg-slate-950/50 rounded-lg border border-slate-800">
+                        {query.length === 10 ? (
+                            <svg className="w-6 h-6 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        ) : (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        )}
+                    </div>
+                    <form onSubmit={handleSearch} className="flex-1">
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="ENTER 10-DIGIT HS CODE OR PRODUCT KEY..."
+                            className="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-white placeholder-slate-600 outline-none uppercase tracking-widest font-mono"
+                        />
+                    </form>
+
+                    {query.length === 10 && (
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] font-black uppercase tracking-widest text-emerald-400 mr-2">
+                            <span>Verified Schema</span>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={(e) => handleSearch(e)}
+                        disabled={loading}
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 active:scale-95"
+                    >
+                        {loading ? 'SCANNING...' : 'INITIATE'}
+                    </button>
                 </div>
-                <form onSubmit={handleSearch} className="flex-1">
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="ENTER 8-DIGIT OR 10-DIGIT HS CODE OR PRODUCT NAME..."
-                        className="w-full bg-transparent border-none focus:ring-0 text-xs font-black text-slate-200 placeholder-slate-600 outline-none uppercase tracking-widest font-mono"
-                    />
-                </form>
-                <button
-                    onClick={(e) => handleSearch(e)}
-                    disabled={loading}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(79,70,229,0.4)] hover:shadow-[0_0_20px_rgba(79,70,229,0.6)]"
-                >
-                    {loading ? 'SCANNING...' : 'INITIATE ANALYSIS'}
-                </button>
             </div>
 
             <div className="flex-1 relative">
@@ -299,8 +304,10 @@ export const ProductInsightView: React.FC = () => {
                                                 <span className="text-4xl font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)] font-mono">₹{insight.metrics.total_incentives.toLocaleString()}</span>
                                             </div>
                                             <div className="text-right">
-                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Net Realized Margin</span>
-                                                <div className="text-2xl font-bold text-slate-200 tracking-tighter mt-1 font-mono">+{((insight.metrics.total_incentives / baseCost) * 100).toFixed(2)}% Benefit</div>
+                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Net Benefit Realization</span>
+                                                <div className="text-2xl font-bold text-emerald-400 tracking-tighter mt-1 font-mono hover:scale-105 transition-transform cursor-default">
+                                                    +{((insight.metrics.total_incentives / baseCost) * 100).toFixed(2)}%
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -419,7 +426,7 @@ const IncentiveRow = ({ label, value, color, percentage }: { label: string, valu
                 <div className={`w-1.5 h-1.5 rounded-full ${color} shadow-[0_0_5px_currentColor]`}></div>
                 <span className="text-slate-400 group-hover:text-slate-300 transition-colors">{label}</span>
             </div>
-            <span className="text-slate-200 font-mono">₹{value.toLocaleString()}</span>
+            <span className={`font-mono ${value > 0 ? 'text-emerald-400 font-bold' : 'text-slate-200'}`}>₹{value.toLocaleString()}</span>
         </div>
         <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
             <div

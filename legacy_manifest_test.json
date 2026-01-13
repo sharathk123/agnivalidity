@@ -1,0 +1,26 @@
+{
+    "exporter_ref": "EXIM-TEST-2026-001",
+    "sb_no": "99887766",
+    "invoice_date": "2026-01-15",
+    "port_code": "INNSA1",
+    "items": [
+        {
+            "product": "Alphonso Mango Pulp",
+            "hsn_code": "080450",
+            "quantity": 1200,
+            "uom": "KGS",
+            "value_usd": 4500.00
+        },
+        {
+            "product": "Spices - Cardamom",
+            "hsn_code": "090831",
+            "quantity": 50,
+            "uom": "KGS",
+            "value_usd": 1200.50
+        }
+    ],
+    "consignee": {
+        "name": "Global Foods Ltd",
+        "country": "UAE"
+    }
+}
