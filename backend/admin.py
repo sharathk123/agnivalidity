@@ -12,6 +12,9 @@ from typing import List, Optional, Set
 from pydantic import BaseModel
 import asyncio
 import json
+from ingestors.dgft_ingestor import HSCodeRecord
+from ingestors.utils import validate_before_ingestion
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -161,9 +164,31 @@ async def get_source_logs(source_id: int, limit: int = 10, db: Session = Depends
 # CONTROL ENDPOINTS
 # ================================================================
 
-@router.post("/ingestion/{source_id}/start")
+@router.post("/ingestion/manual_entry")
+async def manual_entry(payload: dict, db: Session = Depends(get_db)):
+    """
+    Manually ingest an HS Code record.
+    Used for testing validation logic (clean_hs_code).
+    """
+    try:
+        record = HSCodeRecord(**payload)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+        
+    # Upsert into DB
+    # Using HSCode table (defined in database.py but accessed via raw SQL here for consistency)
+    db.execute(text("""
+        INSERT INTO hs_code (hs_code, description, regulatory_sensitivity)
+        VALUES (:hc, :desc, 'LOW')
+        ON CONFLICT(hs_code) DO UPDATE SET description = excluded.description
+    """), {"hc": record.hs_code, "desc": record.description})
+    db.commit()
+    
+    return {"status": "SUCCESS", "hs_code": record.hs_code, "cleaned_data": record.dict()}
+
+@router.post("/ingestion/{source_identifier}/start")
 async def start_ingestion(
-    source_id: int, 
+    source_identifier: str, 
     background_tasks: BackgroundTasks,
     dry_run: bool = True,
     db: Session = Depends(get_db)
@@ -178,16 +203,35 @@ async def start_ingestion(
     if kill_switch == 'ON':
         raise HTTPException(status_code=403, detail="Global kill switch is ON. All ingestions paused.")
     
-    # Get source
-    source = db.execute(text(
-        "SELECT id, source_name, is_active FROM ingestion_sources WHERE id = :id"
-    ), {"id": source_id}).fetchone()
+    # Get source (Handle int ID or text Name)
+    source = None
+    if source_identifier.isdigit():
+        source = db.execute(text(
+            "SELECT id, source_name, is_active FROM ingestion_sources WHERE id = :id"
+        ), {"id": int(source_identifier)}).fetchone()
+    else:
+        source = db.execute(text(
+            "SELECT id, source_name, is_active FROM ingestion_sources WHERE source_name = :name"
+        ), {"name": source_identifier}).fetchone()
     
     if not source:
-        raise HTTPException(status_code=404, detail="Source not found")
+        raise HTTPException(status_code=404, detail=f"Source '{source_identifier}' not found")
     
-    if not source[2]:  # is_active
+    source_id = source[0]
+    source_name = source[1]
+    is_active = source[2]
+    
+    if not is_active:  # is_active
         raise HTTPException(status_code=400, detail="Source is disabled")
+        
+    # Pre-flight Validation (Synchronous check for 409)
+    # This ensures "Compliance Gate" blocks immediately
+    validation = validate_before_ingestion(source_name, db)
+    if not validation["can_proceed"]:
+        # Find the blocker
+        blocker = next((c for c in validation["checks"] if c["status"] != "OK"), None)
+        detail = blocker["message"] if blocker else "Validation failed"
+        raise HTTPException(status_code=409, detail=f"Schema Update Required: {detail}")
     
     # Update status to RUNNING
     db.execute(text("""
@@ -198,10 +242,10 @@ async def start_ingestion(
     db.commit()
     
     # Add background task
-    background_tasks.add_task(run_ingestion_worker, source_id, source[1], dry_run)
+    background_tasks.add_task(run_ingestion_worker, source_id, source_name, dry_run)
     
     return {
-        "message": f"Ingestion worker for '{source[1]}' started in background",
+        "message": f"Ingestion worker for '{source_name}' started in background",
         "source_id": source_id,
         "dry_run": dry_run
     }
