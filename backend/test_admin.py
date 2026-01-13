@@ -6,13 +6,24 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from main import app
-from database import Base
+from database import Base, SessionLocal
+from admin import get_db
 import os
 
 # Setup test database
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_admin.db"
 engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Override dependency
+def override_get_db():
+    try:
+        db = TestingSessionLocal()
+        yield db
+    finally:
+        db.close()
+
+app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
@@ -27,7 +38,7 @@ def setup_db():
     # Create core tables
     Base.metadata.create_all(bind=engine)
     
-    # Create admin tables
+    # Create admin tables with updated columns
     db = TestingSessionLocal()
     
     db.execute(text("""
@@ -40,6 +51,7 @@ def setup_db():
             is_active BOOLEAN DEFAULT TRUE,
             dry_run_mode BOOLEAN DEFAULT FALSE,
             throttle_rpm INTEGER DEFAULT 10,
+            ingestion_strategy TEXT DEFAULT 'REST_API',
             last_run_status TEXT,
             last_run_at DATETIME,
             records_updated INTEGER DEFAULT 0,
@@ -76,13 +88,18 @@ def setup_db():
     
     # Seed test data
     db.execute(text("""
-        INSERT INTO ingestion_sources (source_name, source_type, frequency, last_run_status)
-        VALUES ('TEST_SOURCE', 'REFERENCE', 'DAILY', 'IDLE')
+        INSERT INTO ingestion_sources (source_name, source_type, frequency, last_run_status, ingestion_strategy)
+        VALUES ('TEST_SOURCE', 'REFERENCE', 'DAILY', 'IDLE', 'REST_API')
     """))
     
     db.execute(text("""
         INSERT INTO system_settings (setting_key, setting_value, description)
         VALUES ('GLOBAL_KILL_SWITCH', 'OFF', 'Master switch')
+    """))
+
+    db.execute(text("""
+        INSERT INTO system_settings (setting_key, setting_value, description)
+        VALUES ('ICEGATE_JSON_VERSION', '1.5', 'Schema version')
     """))
     
     db.commit()
@@ -90,6 +107,8 @@ def setup_db():
     
     yield
     
+    # Cleanup
+    app.dependency_overrides = {}
     engine.dispose()
     if os.path.exists("./test_admin.db"):
         try:
@@ -99,22 +118,32 @@ def setup_db():
 
 def test_get_ingestion_status():
     """Test GET /admin/ingestion/status"""
+    # Re-apply override if lost (sometimes happens with autouse fixtures)
+    app.dependency_overrides[get_db] = override_get_db
+    
     response = client.get("/admin/ingestion/status")
     assert response.status_code == 200
     data = response.json()
     assert "sources" in data
     assert "total" in data
+    assert data["sources"][0]["ingestion_strategy"] == "REST_API"
 
 def test_get_system_settings():
     """Test GET /admin/settings"""
+    app.dependency_overrides[get_db] = override_get_db
+    
     response = client.get("/admin/settings")
     assert response.status_code == 200
     data = response.json()
     assert "settings" in data
+    assert "GLOBAL_KILL_SWITCH" in data["settings"]
 
 def test_toggle_kill_switch():
     """Test POST /admin/settings/kill-switch"""
+    app.dependency_overrides[get_db] = override_get_db
+    
     response = client.post("/admin/settings/kill-switch")
     assert response.status_code == 200
     data = response.json()
     assert "kill_switch" in data
+    assert data["kill_switch"] == "ON"

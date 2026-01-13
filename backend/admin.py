@@ -234,17 +234,143 @@ async def toggle_kill_switch(db: Session = Depends(get_db)):
     return {"kill_switch": new_value, "message": f"Kill switch is now {new_value}"}
 
 # ================================================================
-# BACKGROUND WORKER (Mock Implementation)
+# VALIDATION & HEALTH ENDPOINTS
+# ================================================================
+
+@router.get("/icegate/version-check")
+async def check_icegate_version(db: Session = Depends(get_db)):
+    """
+    Check ICEGATE JSON schema version compatibility.
+    CRITICAL: Live Jan 31, 2026.
+    """
+    from ingestors.utils import check_icegate_schema_version
+    return check_icegate_schema_version(db)
+
+@router.get("/ingestion/{source_name}/preflight")
+async def preflight_check(source_name: str, db: Session = Depends(get_db)):
+    """
+    Pre-flight validation before starting ingestion.
+    Returns all checks that must pass.
+    """
+    from ingestors.utils import validate_before_ingestion
+    return validate_before_ingestion(source_name, db)
+
+@router.get("/health/dashboard")
+async def admin_dashboard_health(db: Session = Depends(get_db)):
+    """
+    Dashboard health summary for Admin UI.
+    Returns counts and status for all components.
+    """
+    # Get source counts by status
+    sources = db.execute(text("""
+        SELECT last_run_status, COUNT(*) as count
+        FROM ingestion_sources
+        GROUP BY last_run_status
+    """)).fetchall()
+    
+    source_status = {row[0] or "IDLE": row[1] for row in sources}
+    
+    # Get recent errors
+    recent_errors = db.execute(text("""
+        SELECT COUNT(*) FROM ingestion_logs
+        WHERE error_summary IS NOT NULL
+        AND started_at > datetime('now', '-24 hours')
+    """)).scalar()
+    
+    # Get total records updated today
+    records_today = db.execute(text("""
+        SELECT SUM(records_inserted + records_updated) FROM ingestion_logs
+        WHERE started_at > datetime('now', '-24 hours')
+    """)).scalar()
+    
+    # Get kill switch status
+    kill_switch = db.execute(text(
+        "SELECT setting_value FROM system_settings WHERE setting_key = 'GLOBAL_KILL_SWITCH'"
+    )).scalar()
+    
+    # Check ICEGATE version
+    from ingestors.utils import check_icegate_schema_version
+    icegate_status = check_icegate_schema_version(db)
+    
+    return {
+        "status": "healthy" if kill_switch == "OFF" else "paused",
+        "kill_switch": kill_switch,
+        "sources": source_status,
+        "total_sources": sum(source_status.values()),
+        "errors_24h": recent_errors or 0,
+        "records_updated_24h": records_today or 0,
+        "icegate_version": icegate_status,
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+# ================================================================
+# BACKGROUND WORKER DISPATCHER
 # ================================================================
 
 async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
     """
-    Background worker for ingestion.
-    This is a mock implementation - real workers would call actual ingestors.
+    Background worker dispatcher.
+    Routes to specific ingestors based on source_name.
     """
     from database import SessionLocal
-    import time
     
+    # 1. DGFT HS Mapper
+    if source_name == "DGFT_ITCHS_MASTER":
+        from ingestors.dgft_ingestor import run_dgft_ingestor_worker
+        # Run blocking sync worker in thread pool
+        import asyncio
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, run_dgft_ingestor_worker, source_id, dry_run)
+        return
+
+    # 2. ISO Country List
+    if source_name == "ISO_COUNTRY_LIST":
+        from ingestors.country_ingestor import run_country_ingestor
+        
+        db = SessionLocal()
+        try:
+            # Country ingestor is sync
+            result = run_country_ingestor(db, dry_run=dry_run)
+            
+            # Log result (manually here as country_ingestor returns dict)
+            db.execute(text("""
+                INSERT INTO ingestion_logs 
+                (source_id, run_type, records_fetched, records_inserted, 
+                 records_updated, records_skipped, started_at, finished_at, duration_seconds)
+                VALUES (:sid, :type, :fetched, :inserted, :updated, :skipped, 
+                        :start, :end, :dur)
+            """), {
+                "sid": source_id,
+                "type": "DRY_RUN" if dry_run else "FULL",
+                "fetched": result["records_fetched"],
+                "inserted": result["records_inserted"],
+                "updated": result["records_updated"],
+                "skipped": result["records_skipped"],
+                "start": result["started_at"],
+                "end": result["finished_at"],
+                "dur": result["duration_seconds"]
+            })
+            
+            status = "SUCCESS" if not result["errors"] else "FAILED"
+            db.execute(text("""
+                UPDATE ingestion_sources 
+                SET last_run_status = :status, 
+                    records_updated = records_updated + :count
+                WHERE id = :id
+            """), {
+                "status": status,
+                "count": result["records_inserted"] + result["records_updated"],
+                "id": source_id
+            })
+            db.commit()
+            
+        finally:
+            db.close()
+        return
+
+    # 3. Fallback Mock Implementation for others
+    import time
     db = SessionLocal()
     started_at = datetime.now()
     

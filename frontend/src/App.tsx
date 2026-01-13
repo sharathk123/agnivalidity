@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { AdminCommandCenter } from './components/admin/CommandCenter';
 
 const API_BASE = 'http://localhost:8000/api/v1';
 
@@ -53,7 +54,24 @@ interface Insight {
   recommendation: RecData;
 }
 
+// Simple Router Hook
+const usePath = () => {
+  const [path, setPath] = useState(window.location.pathname);
+  useEffect(() => {
+    const onPopState = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+  return path;
+};
+
 function App() {
+  const path = usePath();
+
+  if (path === '/admin') {
+    return <AdminCommandCenter />;
+  }
+
   const [query, setQuery] = useState('');
   const [hsnResults, setHsnResults] = useState<HSCode[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
