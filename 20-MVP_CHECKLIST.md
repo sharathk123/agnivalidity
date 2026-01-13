@@ -8,20 +8,20 @@
 
 ## 2. Data Acquisition [ ]
 - [ ] Seed HSN Directory (Chapter 01-98).
-- [ ] Seed RoDTEP/Drawback rates (2024-25 data).
-- [ ] Map certification rules to HSN Chapters.
+- [ ] Seed Market Demand & Price patterns.
+- [ ] Map certification rules to HS Codes/Chapters.
 
 ## 3. Backend Implementation [ ]
 - [ ] HSN Search API (SQLite full-text search).
-- [ ] Incentive Lookup API.
-- [ ] Compliance Rule Engine (Rule-based).
-- [ ] Country Risk API.
+- [ ] Market Intelligence API (Demand/Price).
+- [ ] Compliance Checklist API (Rule-based).
+- [ ] Country Risk & Advisory API.
 
 ## 4. Frontend Implementation [ ]
 - [ ] Hero Section & Search Bar.
-- [ ] HSN Intelligence Dashboard.
+- [ ] HS Intelligence Dashboard.
 - [ ] Compliance Checklist View.
-- [ ] Export Benefit Estimator.
+- [ ] Market Demand & Price Cards.
 
 ## 5. Deployment [ ]
 - [ ] Create Fly.io project for Backend.

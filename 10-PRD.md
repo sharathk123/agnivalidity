@@ -17,9 +17,9 @@ Currently, this data is scattered across multiple government portals (DGFT, ICEG
 ## 3. Core Features (Scope)
 ### Phase 1: Search & Intelligence (MVP)
 1. **HSN Search Engine**: Full-text search to find 4, 6, and 8-digit HSN codes.
-2. **Incentive Calculator**: Display RoDTEP and Duty Drawback rates for a given HSN.
-3. **Compliance Checklist**: Rule-based engine to list mandatory documents (e.g., APEDA for spices, Coffee Board for coffee).
-4. **Export Risk Profiler**: Basic risk indicators (Rule-based) for specific countries.
+2. **Compliance Checklist**: Rule-based engine to list mandatory documents (e.g., APEDA for spices, Coffee Board for coffee).
+3. **Export Risk Profiler**: Basic risk indicators (Rule-based) for specific countries.
+4. **Market Visibility**: Indicative demand and price band summaries.
 
 ## 4. Non-Functional Requirements
 - **Zero Cost**: No paid APIs (except free tiers if absolutely necessary).
