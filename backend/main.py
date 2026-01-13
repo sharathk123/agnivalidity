@@ -216,5 +216,93 @@ async def generate_pdf(hs_code_id: int, country_id: int, db: Session = Depends(g
     
     return FileResponse(path=path, filename=filename, media_type='application/pdf')
 
+@app.get("/api/v1/advisory")
+async def get_executive_brief(hs_code_id: int, country_id: int, db: Session = Depends(get_db)):
+    """
+    Generate AI-enhanced Executive Brief for trade advisory.
+    Uses EXECUTIVE_BRIEF prompt template with structured trade data.
+    AI is optional - returns structured data if AI fails.
+    """
+    from datetime import datetime
+    
+    # Fetch core data
+    hsn = db.query(HSCode).filter(HSCode.id == hs_code_id).first()
+    country = db.query(Country).filter(Country.id == country_id).first()
+    
+    if not hsn or not country:
+        raise HTTPException(status_code=404, detail="Product or destination not found")
+    
+    # Get all insight data
+    try:
+        insight_data = await get_insight(hs_code_id, country_id, db)
+    except HTTPException:
+        return {
+            "brief": "Insufficient data available for this trade route. Please verify the product and destination combination.",
+            "data_available": False,
+            "generated_at": datetime.now().isoformat()
+        }
+    
+    # Assemble context for AI
+    structured_context = {
+        "product": {
+            "hs_code": hsn.hs_code,
+            "description": hsn.description,
+            "sector": hsn.sector if hasattr(hsn, 'sector') else None
+        },
+        "destination": {
+            "country": country.name,
+            "iso_code": country.iso_code,
+            "region": country.region if hasattr(country, 'region') else None,
+            "base_risk": country.base_risk_level if hasattr(country, 'base_risk_level') else None
+        },
+        "market": insight_data.get("demand", {}),
+        "pricing": insight_data.get("price", {}),
+        "risk": insight_data.get("risk", {}),
+        "certifications": insight_data.get("certifications", []),
+        "recommendation": insight_data.get("recommendation", {}),
+        "data_sources": ["DGFT", "UN Comtrade", "APEDA"],
+        "data_last_updated": datetime.now().strftime("%Y-%m-%d")
+    }
+    
+    # Try to get AI explanation
+    try:
+        from services.ai_service import get_explanation
+        ai_brief = get_explanation(
+            explanation_type="EXECUTIVE_BRIEF",
+            structured_payload=structured_context,
+            hs_code=hsn.hs_code,
+            country_code=country.iso_code,
+            db=db
+        )
+    except Exception:
+        # Fallback: Generate rule-based brief without AI
+        risk_alert = "⚠️ REGULATORY ALERT\n\n" if structured_context["risk"].get("level") == "HIGH" else ""
+        
+        ai_brief = f"""{risk_alert}**EXECUTIVE BRIEF: {hsn.description} to {country.name}**
+
+**MARKET OPPORTUNITY**
+• Demand Level: {structured_context['market'].get('level', 'Pending verification')}
+• Price Range: {structured_context['pricing'].get('currency', 'USD')} {structured_context['pricing'].get('min', 'N/A')} - {structured_context['pricing'].get('max', 'N/A')}
+
+**RISK & COMPLIANCE**
+• Risk Score: {structured_context['risk'].get('score', 'N/A')}/100 ({structured_context['risk'].get('level', 'N/A')})
+• Certifications Required: {len(structured_context['certifications'])}
+
+**RECOMMENDATION: {structured_context['recommendation'].get('action', 'N/A')}**
+{structured_context['recommendation'].get('rationale', 'Review data above.')}
+
+---
+*Data Sources: DGFT, UN Comtrade, APEDA*
+*Last Updated: {structured_context['data_last_updated']}*
+*This is indicative guidance. Consult a licensed trade advisor for binding decisions.*"""
+    
+    return {
+        "brief": ai_brief,
+        "structured_data": structured_context,
+        "data_available": True,
+        "generated_at": datetime.now().isoformat(),
+        "disclaimer": "This advisory is indicative and based on public data. It does not constitute legal or financial advice."
+    }
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

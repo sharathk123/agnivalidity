@@ -100,3 +100,22 @@ def test_get_insight_not_found():
     # ID 999 does not exist
     response = client.get("/api/v1/insight?hs_code_id=999&country_id=999")
     assert response.status_code == 404
+
+def test_get_executive_brief():
+    """Test the AI-enhanced advisory endpoint"""
+    response = client.get("/api/v1/advisory?hs_code_id=1&country_id=1")
+    assert response.status_code == 200
+    data = response.json()
+    assert "brief" in data
+    assert "structured_data" in data
+    assert "disclaimer" in data
+    assert data["data_available"] == True
+    # Verify structured data has required sections
+    assert "product" in data["structured_data"]
+    assert "destination" in data["structured_data"]
+    assert "recommendation" in data["structured_data"]
+
+def test_get_executive_brief_not_found():
+    """Test advisory endpoint with invalid IDs"""
+    response = client.get("/api/v1/advisory?hs_code_id=999&country_id=999")
+    assert response.status_code == 404
