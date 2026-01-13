@@ -64,7 +64,7 @@ async def get_all_sources_status(db: Session = Depends(get_db)):
     result = db.execute(text("""
         SELECT id, source_name, source_type, base_url, frequency, 
                is_active, dry_run_mode, throttle_rpm, last_run_status, 
-               last_run_at, records_updated
+               last_run_at, records_updated, ingestion_strategy
         FROM ingestion_sources
         ORDER BY source_name
     """))
@@ -82,10 +82,12 @@ async def get_all_sources_status(db: Session = Depends(get_db)):
             "throttle_rpm": row[7],
             "last_run_status": row[8],
             "last_run_at": row[9],
-            "records_updated": row[10] or 0
+            "records_updated": row[10] or 0,
+            "ingestion_strategy": row[11] or "REST_API"
         })
     
     return {"sources": sources, "total": len(sources)}
+
 
 @router.get("/ingestion/{source_id}/logs")
 async def get_source_logs(source_id: int, limit: int = 10, db: Session = Depends(get_db)):
