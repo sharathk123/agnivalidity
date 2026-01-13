@@ -3,8 +3,8 @@ import os
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from main import app, get_db
-from database import Base, HSCode, Country, MarketDemand, PriceBand, Recommendation, RiskScoreSummary, RiskScoreDetail, Certification, CertificationRequirement, CertificationNotes
+from main import app
+from database import Base, HSCode, Country, MarketDemand, PriceBand, Recommendation, RiskScoreSummary, RiskScoreDetail, Certification, CertificationRequirement, CertificationNotes, get_db
 
 # Setup test database
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_exim_insight.db"
