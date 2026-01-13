@@ -1,52 +1,36 @@
-# AGNI EXIM - UI Design Guidelines
+# AGNI EXIM - UI Design Guidelines (Modern Corporate / Linear)
 
 ## 1. Design Philosophy
-**"Visual Excellence, Modern SaaS, Premium Intelligence"**
-Our interface is designed to instill trust and clarity. We use a clean, glassmorphism-inspired aesthetic with robust information density appropriate for enterprise trade analysis.
+**"Structural Integrity, Professional Authority, Regulatory Precision"**
+Transitioned from "Apple-style" to a Modern Corporate framework. The UI prioritizes high-density data, crisp 1px borders, and a professional indigo-slate color palette to command authority in the Indian EXIM sector.
 
 ## 2. Typography
-**Primary Font:** `Inter` (Google Fonts)
-- Weights: 300 (Light), 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold)
-- Usage: `font-sans` (Tailwind default)
-- Fallback: System Sans Serif
+- **Headings (Display):** `Archivo` (Bold/Extrabold). Projects technical robustness and regulatory precision.
+- **Body:** `Inter`. Retained for high readability in data-dense environments.
+- **Hierarchy:** Headers use `tracking-tighter`, while body text uses `leading-relaxed`.
 
-## 3. Color Palette
-Defined in `tailwind.config.js`.
+## 3. Color Palette (Fintech-Standard)
+- **Primary Brand:** `brand-600` (#4F46E5 - Indigo). Represents stability and corporate finance.
+- **Base Surface:** `bg-slate-50` (#f8fafc).
+- **Secondary Surface:** `bg-white` (#ffffff).
+- **Borders:** `border-slate-200` (1px solid). No soft shadows.
+- **Status Indicators:**
+  - **GO / SUCCESS**: `emerald-600`
+  - **AVOID / FAILED**: `rose-600`
+  - **WARNING**: `amber-600`
 
-### Brand (Ocean Blue)
-- Primary: `brand-600` (#0284c7) - Buttons, Active States
-- Dark: `brand-900` (#0c4a6e) - Headers, Emphasis
-- Light: `brand-50` (#f0f9ff) - Backgrounds, Highlights
+## 4. Component Standardization
+- **Containers (Cards):** `.corporate-card` (`bg-white border border-slate-200 rounded-lg p-6 shadow-sm`). 8px corners (`rounded-lg`).
+- **Input Fields:** Strict bordered input fields. Use sliders only for rapid simulation (Simulation Mode).
+- **Buttons:** Solid `brand-600`, sharp but slightly rounded corners (`rounded`). No gradients as of 2026.
 
-### Accent (Emerald Green)
-- Success: `accent-500` (#10b981) - "GO" Recommendations, Positive Trends
-- Ring: `accent-400` (#34d399) - Focus states
-
-### Semantic Colors
-- **GO**: Emerald/Green Gradients (`bg-gradient-to-r from-emerald-50 to-white`)
-- **CAUTION**: Amber/Orange (`text-amber-700`)
-- **AVOID**: Red/Rose (`border-l-red-500`)
-
-## 4. Components
-
-### Cards (`Card.tsx`)
-Usage: Wrap distinct content sections.
-Style: `bg-white rounded-xl border border-slate-200 shadow-sm p-6`
-Feature: Glass/Clear effect on backgrounds where applicable.
-
-### Layout (`DashboardLayout.tsx`)
-Structure:
-- **Sidebar**: Fixed, Dark (`bg-slate-900`), Gradient Logo.
-- **Header**: Sticky, Glassmorphism (`bg-white/80 backdrop-blur-md`).
-- **Main**: Light Gray Background (`bg-slate-50`).
-
-## 5. Micro-interactions
-- **Hover**: Subtle lifts (`hover:shadow-md`) or color shifts (`hover:text-brand-600`).
-- **Transitions**: `transition-all duration-200`.
-- **Animations**: `animate-fade-in`, `animate-slide-up` (defined in tailwind config).
+## 5. Layout Architecture
+- **Unified Sidebar:** Persistent left sidebar (`w-64`, `bg-white`, `border-r border-slate-200`).
+- **Header:** Functional Sticky Header (`h-14`, `bg-white`, `border-b border-slate-200`).
+- **Information Density:** High density is preferred for Admin ("Control Ledger") views.
 
 ## 6. Implementation Rules
-1.  **Tailwind First**: No inline styles. No CSS files unless global reset.
-2.  **Lucide Icons**: Use consistent icon set (if added). Currently text emojis are placeholders.
-3.  **Responsive**: Mobile-first (`grid-cols-1 lg:grid-cols-12`).
-4.  **Charts**: Use Recharts (future implementation).
+1. **Linear Grid:** Use CSS Grid and Flexbox with fixed borders instead of floating elements.
+2. **Zero Blur:** No `backdrop-blur` or glassmorphism.
+3. **No Gradients:** Solid colors define the brand.
+4. **Regulatory UX:** Always include a "Compliance Banner" or status for ICEGATE v1.1 readiness.

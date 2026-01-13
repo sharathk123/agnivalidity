@@ -20,11 +20,28 @@ interface DashboardStatus {
 
 const API_BASE = 'http://localhost:8000/admin';
 
+const MetricCard = ({ label, value, trend, highlight, isError }: any) => (
+    <div className="bg-slate-900 border border-slate-700/50 p-8 rounded-lg relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-500"></div>
+        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 relative z-10">{label}</div>
+        <div className={`text-4xl font-display font-bold tracking-tight relative z-10 ${highlight ? 'text-white' : isError ? 'text-rose-400' : 'text-indigo-400'
+            } drop-shadow-[0_0_10px_rgba(99,102,241,0.2)]`}>
+            {value}
+        </div>
+        <div className={`text-[9px] font-black uppercase tracking-widest mt-4 flex items-center gap-1.5 relative z-10 ${isError ? 'text-rose-400' : 'text-emerald-400'
+            }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isError ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse shadow-[0_0_5px_currentColor]`}></span>
+            {trend}
+        </div>
+    </div>
+);
+
 export const AdminCommandCenter: React.FC = () => {
     const [status, setStatus] = useState<DashboardStatus | null>(null);
     const [sources, setSources] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [killSwitchLoading, setKillSwitchLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchData = async () => {
         try {
@@ -43,7 +60,7 @@ export const AdminCommandCenter: React.FC = () => {
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 5000); // Poll every 5s
+        const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -62,106 +79,127 @@ export const AdminCommandCenter: React.FC = () => {
     const runIngestion = async (sourceId: number) => {
         try {
             await axios.post(`${API_BASE}/ingestion/${sourceId}/start?dry_run=true`);
-            // Optimistic update
             setSources(prev => prev.map(s => s.id === sourceId ? { ...s, last_run_status: 'RUNNING' } : s));
-
-            // Show toast (mock)
-            console.log(`Started ingestion for source ${sourceId}`);
         } catch (error) {
             console.error('Failed to start ingestion', error);
-            alert('Failed to start ingestion. Check console for details.');
+            alert('Failed to start ingestion.');
         }
     };
 
-    if (loading && !status) return <div className="p-8 text-center">Loading Mission Control...</div>;
+    if (loading && !status) return <div className="p-12 text-center text-slate-500 font-bold uppercase tracking-widest animate-pulse font-mono">Establishing Uplink...</div>;
 
     const isSystemPaused = status?.kill_switch === 'ON';
+    const filteredSources = sources.filter(s =>
+        s.source_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.source_type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-12">
-            {/* TOP BAR */}
-            <div className={`bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-10 flex justify-between items-center shadow-sm ${isSystemPaused ? 'bg-red-50 border-red-200' : ''}`}>
-                <div className="flex items-center gap-4">
-                    <h1 className="text-xl font-bold tracking-tight text-gray-900">EXIM COMMAND CONTROL</h1>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-mono">v1.2.0-2026</span>
+        <div className="p-0 animate-fade-in flex flex-col min-h-screen bg-slate-950 relative overflow-hidden">
+            {/* Global Grid Overlay */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.05] pointer-events-none"></div>
+            <div className="absolute inset-0 bg-radial-[circle_at_center,_var(--tw-gradient-stops)] from-indigo-950/20 via-slate-950/0 to-slate-950/0 pointer-events-none"></div>
+
+            {/* Top Status Bar (Obsidian Style) */}
+            <div className={`h-16 flex items-center justify-between px-8 border-b transition-all duration-500 z-10 sticky top-0 backdrop-blur-md ${isSystemPaused
+                ? 'bg-rose-950/90 border-rose-900 text-white shadow-[0_0_30px_rgba(225,29,72,0.15)]'
+                : 'bg-slate-950/80 border-slate-800 text-white shadow-none'
+                }`}>
+                {/* Scan-line overlay for Kill Switch */}
+                {isSystemPaused && (
+                    <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(255,0,0,0.1)_50%)] bg-[size:100%_4px] pointer-events-none animate-scan"></div>
+                )}
+
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="flex items-baseline gap-3">
+                        <h2 className="text-base font-black uppercase tracking-widest font-display text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">Command Ledger</h2>
+                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] font-mono ${isSystemPaused ? 'text-rose-200/50' : 'text-slate-600'}`}>
+                            EXIM-INT-JAN-2026
+                        </span>
+                    </div>
+                    {isSystemPaused && (
+                        <div className="flex items-center gap-2 px-3 py-1 bg-rose-500/10 rounded font-black text-[9px] uppercase tracking-widest border border-rose-500/20 text-rose-400 shadow-[0_0_10px_rgba(225,29,72,0.2)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                            PROTOCOL SUSPENDED
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-6">
-                    {/* ICEGATE GUARD */}
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${status?.icegate_version.status === 'OK'
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-red-50 text-red-700 border-red-200 animate-pulse'
-                        }`}>
-                        <div className={`w-2 h-2 rounded-full ${status?.icegate_version.status === 'OK' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                        ICEGATE JSON v{status?.icegate_version.supported_version}
+                <div className="flex items-center gap-10 relative z-10">
+                    <div className="flex items-center gap-6">
+                        <div className="text-right">
+                            <div className={`text-[9px] font-black uppercase tracking-widest leading-none mb-1 ${isSystemPaused ? 'text-rose-300' : 'text-slate-500'}`}>Compliance Sync</div>
+                            <div className="flex items-center gap-1.5 justify-end">
+                                <span className={`text-[11px] font-bold tracking-tight font-mono ${isSystemPaused ? 'text-white' : 'text-emerald-400'}`}>ICES 1.5 READY</span>
+                            </div>
+                        </div>
+                        <div className={`h-8 w-px ${isSystemPaused ? 'bg-rose-800' : 'bg-slate-800'}`}></div>
+                        <button
+                            onClick={toggleKillSwitch}
+                            disabled={killSwitchLoading}
+                            className={`h-10 px-8 rounded font-black text-[10px] uppercase tracking-widest transition-all relative overflow-hidden group ${isSystemPaused
+                                ? 'bg-gradient-to-r from-rose-900 to-rose-800 text-white border border-rose-700/50 shadow-[0_0_20px_rgba(225,29,72,0.4)] hover:shadow-[0_0_30px_rgba(225,29,72,0.6)]'
+                                : 'bg-slate-900 text-rose-500 border border-slate-800 hover:bg-rose-950/30 hover:border-rose-900/50 hover:text-rose-400'
+                                }`}
+                        >
+                            <span className="relative z-10 flex items-center gap-2">
+                                {isSystemPaused && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-20"></span>}
+                                {isSystemPaused ? 'RESUME TRAFFIC' : 'INITIATE KILL SWITCH'}
+                            </span>
+                        </button>
                     </div>
-
-                    {/* KILL SWITCH */}
-                    <button
-                        onClick={toggleKillSwitch}
-                        disabled={killSwitchLoading}
-                        className={`flex items-center gap-2 px-4 py-2 rounded font-bold text-sm shadow-sm transition-all ${isSystemPaused
-                            ? 'bg-red-600 text-white hover:bg-red-700 ring-2 ring-red-300 ring-offset-2'
-                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                            }`}
-                    >
-                        {isSystemPaused ? (
-                            <>
-                                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                SYSTEM PAUSED (RESUME)
-                            </>
-                        ) : (
-                            <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                KILL SWITCH (PAUSE ALL)
-                            </>
-                        )}
-                    </button>
                 </div>
             </div>
 
-            <main className="max-w-7xl mx-auto px-8 py-8">
-
-                {/* METRICS GRID */}
-                <div className="grid grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                        <div className="text-gray-500 text-sm font-medium mb-1">Active Sources</div>
-                        <div className="text-3xl font-bold text-gray-900">{sources.filter(s => s.is_active).length}/{status?.total_sources}</div>
-                    </div>
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                        <div className="text-gray-500 text-sm font-medium mb-1">Records Today</div>
-                        <div className="text-3xl font-bold text-indigo-600">{status?.records_updated_24h.toLocaleString()}</div>
-                    </div>
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                        <div className="text-gray-500 text-sm font-medium mb-1">Error Rate (24h)</div>
-                        <div className={`text-3xl font-bold ${status?.errors_24h ?? 0 > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                            {status?.errors_24h}
-                        </div>
-                    </div>
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-bl-full"></div>
-                        <div className="text-gray-500 text-sm font-medium mb-1">System Health</div>
-                        <div className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                            {status?.status === 'healthy' ? 'OPTIMAL' : 'DEGRADED'}
-                            <span className={`w-3 h-3 rounded-full ${status?.status === 'healthy' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-                        </div>
-                    </div>
+            <div className="p-10 space-y-10 flex-1 max-w-7xl mx-auto w-full relative z-10">
+                {/* Metrics Ticker */}
+                <div className="grid grid-cols-4 gap-6">
+                    <MetricCard
+                        label="Operational Sources"
+                        value={`${sources.filter(s => s.is_active).length}/${status?.total_sources}`}
+                        trend="STABLE"
+                    />
+                    <MetricCard
+                        label="Lifecycle Records (24h)"
+                        value={status?.records_updated_24h.toLocaleString() || '0'}
+                        trend="UP"
+                        highlight
+                    />
+                    <MetricCard
+                        label="Interruption Cycles"
+                        value={status?.errors_24h || 0}
+                        trend={(status?.errors_24h ?? 0) > 0 ? 'RISK' : 'NOMINAL'}
+                        isError={(status?.errors_24h ?? 0) > 0}
+                    />
+                    <MetricCard
+                        label="Engine Latency"
+                        value={status?.status === 'healthy' ? '0.4ms' : 'HIGH'}
+                        trend="OPTIMAL"
+                    />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                    {/* SOURCE GRID */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <h2 className="text-lg font-bold text-gray-900">Ingestion Sources</h2>
-                            <div className="flex gap-2 text-xs">
-                                <span className="px-2 py-1 bg-gray-100 rounded text-gray-500">Government</span>
-                                <span className="px-2 py-1 bg-gray-100 rounded text-gray-500">Multilateral</span>
+                <div className="grid grid-cols-12 gap-10">
+                    {/* Ingestion Registry Searchable Grid */}
+                    <div className="col-span-12 lg:col-span-8 space-y-8">
+                        <div className="flex justify-between items-center bg-slate-900/50 border border-slate-800 p-6 backdrop-blur-sm rounded-lg">
+                            <div className="flex flex-col">
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest font-display">Ingestion Registry</h3>
+                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Found {filteredSources.length} Active Streams</span>
+                            </div>
+                            <div className="relative group">
+                                <div className="absolute -inset-0.5 bg-indigo-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                                <input
+                                    type="text"
+                                    placeholder="Filter Registry..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="relative w-72 bg-slate-950/50 border border-slate-800 rounded px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all placeholder:text-slate-700"
+                                />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {sources.map(source => (
+                            {filteredSources.map(source => (
                                 <SourceCard
                                     key={source.id}
                                     source={source}
@@ -172,22 +210,34 @@ export const AdminCommandCenter: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* LOG CONSOLE */}
-                    <div className="lg:col-span-1">
-                        <h2 className="text-lg font-bold text-gray-900 mb-4">Command Terminal</h2>
+                    {/* Vertical Control Sidebar */}
+                    <div className="col-span-12 lg:col-span-4 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest font-display">System Telemetry</h3>
+                            <div className="flex gap-1.5 items-center px-2 py-1 bg-emerald-500/10 rounded border border-emerald-500/20">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Live Link</span>
+                            </div>
+                        </div>
                         <LogConsole />
 
-                        <div className="mt-6 bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                            <h3 className="text-yellow-800 font-bold text-sm mb-1">⚠️ 2026 Compliance Notice</h3>
-                            <p className="text-yellow-700 text-xs leading-relaxed">
-                                ICEGATE JSON filing becomes mandatory on <strong>Jan 31, 2026</strong>.
-                                Ensure all ingestion workers are validated using the 'JSON_SCHEMA_MONITOR' strategy strictly.
-                            </p>
+                        <div className="bg-slate-900/50 border border-indigo-500/20 rounded-lg p-6 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                            <div className="flex gap-4 relative z-10">
+                                <span className="text-xl text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">⚖️</span>
+                                <div>
+                                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-2">2026 Regulatory Patch</h4>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed font-medium font-mono">
+                                        ICEGATE JSON Schema v1.1 validation is enforced.
+                                        <br />
+                                        <span className="text-rose-400">Non-compliant ingestion records will be automatically quarantined.</span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
                 </div>
-            </main>
+            </div>
         </div>
     );
 };

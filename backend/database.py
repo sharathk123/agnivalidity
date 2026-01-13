@@ -110,6 +110,52 @@ class Recommendation(Base):
     rationale = Column(TEXT, nullable=False)
     calculated_at = Column(TEXT)
     __table_args__ = (UniqueConstraint('hs_code_id', 'country_id'),)
+    
+# 6. Export Pricing & Compliance (Jan 31st Readiness)
+class ExportProduct(Base):
+    __tablename__ = "export_products"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    hs_code = Column(String(10), unique=True, index=True) # Transitioned to 10-digit for 2026
+    description = Column(TEXT)
+    
+    # 2026 INCENTIVES (Crawled & Frozen)
+    rodtep_rate = Column(Float) # e.g., 0.02 (for 2%)
+    dbk_rate = Column(Float)    # Duty Drawback
+    gst_refund_rate = Column(Float, default=0.18) 
+    
+    # 2026 COMPLIANCE (ICEGATE v1.1 Schema Mapping)
+    json_template = Column(JSON if 'postgresql' in SQLALCHEMY_DATABASE_URL else TEXT)
+
+# 7. Document & Quote Management (Module 6)
+class CompanyProfile(Base):
+    __tablename__ = "company_profiles"
+    
+    id = Column(Integer, primary_key=True)
+    company_name = Column(String, default="Agni Exporter Ltd")
+    gstin = Column(String(15), unique=True)
+    iec = Column(String(10), unique=True)
+    ad_code = Column(String(20))
+    swift_code = Column(String(11))
+    bank_name = Column(String)
+    bank_branch = Column(String)
+    account_number = Column(String)
+
+class QuoteHistory(Base):
+    __tablename__ = "quote_history"
+    
+    id = Column(Integer, primary_key=True)
+    quote_number = Column(String, unique=True, index=True)
+    hs_code = Column(String(10))
+    product_name = Column(String)
+    total_value = Column(Float)
+    currency = Column(String(3), default="USD")
+    exchange_rate = Column(Float, default=83.5)
+    incoterm = Column(String(3)) # FOB, CIF, etc.
+    validity_date = Column(TEXT)
+    payment_terms = Column(TEXT)
+    pdf_path = Column(String)
+    created_at = Column(TEXT)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

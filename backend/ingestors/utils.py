@@ -194,6 +194,38 @@ def check_icegate_schema_version(db_session) -> Dict[str, Any]:
     return result
 
 
+async def icegate_schema_check(supported_version: str):
+    """
+    Check ICEGATE advisory for schema drift.
+    Raises SystemExit if schema drift is detected (Scenario B).
+    """
+    url = "https://www.icegate.gov.in/advisory"
+    headers = get_random_headers(url)
+    headers["Accept"] = "application/json"
+    
+    try:
+        # We use httpx for async support as requested
+        import httpx
+        async with httpx.AsyncClient(verify=False) as client:
+            response = await client.get(url, headers=headers, timeout=10.0)
+            response.raise_for_status()
+            data = response.json()
+            
+            latest_version = data.get("latest_schema")
+            
+            if latest_version > supported_version:
+                logger.critical(f"[CRITICAL] Schema Drift: Manual Update Required for Jan 31st Compliance. Detected v{latest_version}, supported v{supported_version}.")
+                import sys
+                sys.exit(1)
+            
+            return {"system_status": "READY", "version": latest_version}
+    except Exception as e:
+        if isinstance(e, SystemExit):
+            raise e
+        logger.error(f"ICEGATE Schema Check failed: {e}")
+        return {"system_status": "ERROR", "message": str(e)}
+
+
 def validate_before_ingestion(source_name: str, db_session) -> Dict[str, Any]:
     """
     Pre-flight validation before starting ingestion.

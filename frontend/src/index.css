@@ -1,60 +1,35 @@
 @import "tailwindcss";
 
 body {
-  background-color: #f8fafc;
-  color: #1e293b;
-  font-family: 'Inter', sans-serif;
-  margin: 0;
-  padding: 0;
+  @apply bg-slate-50 text-slate-800 font-sans antialiased;
 }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-display font-bold tracking-tighter;
 }
 
-.card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 4px;
+.corporate-card {
+  @apply bg-white border border-slate-200 rounded-lg p-8 shadow-none transition-all;
 }
 
-.button {
-  background: #2563eb;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
+.sidebar-link {
+  @apply flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-md transition-all;
 }
 
-.button:hover {
-  background: #1d4ed8;
+.sidebar-link-active {
+  @apply bg-brand-50 text-brand-700 border border-brand-100;
 }
 
-.input {
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  width: 100%;
-  box-sizing: border-box;
+.sidebar-link-inactive {
+  @apply text-slate-600 hover:bg-slate-100;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  border: 1px solid #e2e8f0;
-  padding: 8px;
-  text-align: left;
-}
-
-th {
-  background: #f1f5f9;
+/* Custom transitions */
+.transition-corporate {
+  @apply transition-all duration-200 ease-in-out;
 }

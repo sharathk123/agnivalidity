@@ -1,4 +1,5 @@
 import React from 'react';
+import { Play } from 'lucide-react';
 
 interface IngestionSource {
     id: number;
@@ -8,6 +9,8 @@ interface IngestionSource {
     last_run_status: 'SUCCESS' | 'FAILED' | 'RUNNING' | 'IDLE';
     ingestion_strategy: string;
     records_updated: number;
+    is_active: boolean;
+    last_run_at: string | null;
 }
 
 interface SourceCardProps {
@@ -17,52 +20,69 @@ interface SourceCardProps {
 }
 
 export const SourceCard: React.FC<SourceCardProps> = ({ source, onRun, disabled }) => {
-    const statusColor = {
-        'SUCCESS': 'bg-green-500/10 text-green-500 border-green-500/20',
-        'FAILED': 'bg-red-500/10 text-red-500 border-red-500/20',
-        'RUNNING': 'bg-blue-500/10 text-blue-500 border-blue-500/20 animate-pulse',
-        'IDLE': 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-    };
+    const isRunning = source.last_run_status === 'RUNNING';
+
+    // Status logic for glowing pulse dots
+    const statusColor =
+        source.last_run_status === 'FAILED' ? 'bg-rose-500 shadow-[0_0_8px_rgba(225,29,72,0.8)]' :
+            !source.is_active ? 'bg-slate-600' :
+                isRunning ? 'bg-indigo-500 animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.8)]' :
+                    'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]';
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-            <div className="flex justify-between items-start mb-3">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className={`w-2 h-2 rounded-full ${source.last_run_status === 'RUNNING' ? 'bg-blue-500 animate-pulse' : source.last_run_status === 'SUCCESS' ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                        <h4 className="font-semibold text-gray-900 text-sm">{source.source_name}</h4>
+        <div className={`bg-slate-900 border border-slate-700/50 rounded-lg p-6 group transition-all duration-300 hover:border-indigo-500/50 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] relative overflow-hidden ${!source.is_active ? 'opacity-60 grayscale' : ''}`}>
+
+            {/* Background Gradient for Active State */}
+            {source.is_active && <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>}
+
+            <div className="flex justify-between items-start mb-6 relative z-10">
+                <div className="flex items-center gap-4">
+                    <div className="relative flex">
+                        <div className={`w-2.5 h-2.5 rounded-full ${statusColor}`}></div>
+                        {isRunning && (
+                            <div className="absolute -inset-1.5 rounded-full bg-indigo-500 opacity-20 animate-ping"></div>
+                        )}
                     </div>
-                    <p className="text-xs text-gray-500 font-mono">{source.ingestion_strategy}</p>
+                    <div>
+                        <h4 className="text-sm font-bold text-white tracking-tight group-hover:text-indigo-400 transition-colors uppercase font-display">{source.source_name.replace(/_/g, ' ')}</h4>
+                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1 font-mono">{source.ingestion_strategy}</div>
+                    </div>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium border ${statusColor[source.last_run_status]}`}>
-                    {source.last_run_status}
-                </span>
-            </div>
-
-            <div className="flex justify-between items-end mt-4">
-                <div className="text-xs text-gray-500">
-                    <div className="mb-0.5">{source.frequency}</div>
-                    <div>{source.records_updated.toLocaleString()} records</div>
-                </div>
-
-                <div className="flex gap-2">
-                    {/* 
-                     <button 
-                        onClick={() => onToggle(source.id)}
-                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded"
-                        disabled={disabled}
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                    </button>
-                    */}
+                {!isRunning && (
                     <button
                         onClick={() => onRun(source.id)}
-                        disabled={disabled || source.last_run_status === 'RUNNING'}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        disabled={disabled || !source.is_active}
+                        className="p-2 text-slate-400 hover:text-white hover:bg-indigo-600 rounded transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0 shadow-[0_0_10px_rgba(99,102,241,0.3)]"
                     >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        RUN NOW
+                        <Play size={14} fill="currentColor" />
                     </button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-800 mb-4 relative z-10">
+                <div>
+                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Frequency</div>
+                    <div className="text-[11px] font-bold text-slate-300 font-mono">{source.frequency}</div>
+                </div>
+                <div className="text-right">
+                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Records Tracking</div>
+                    <div className="text-[11px] font-bold text-indigo-400 font-mono">{source.records_updated.toLocaleString()}</div>
+                </div>
+            </div>
+
+            <div className={`flex justify-between items-center bg-slate-950/50 -mx-6 -mb-6 px-6 py-3 border-t border-slate-800 mt-2 relative z-10`}>
+                <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Last Run Registry</span>
+                    <span className="text-[10px] font-bold text-slate-400 font-mono">
+                        {source.last_run_at ? new Date(source.last_run_at).toLocaleDateString() : 'NEVER RUN'}
+                    </span>
+                </div>
+                <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${source.last_run_status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                        source.last_run_status === 'FAILED' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+                            isRunning ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 animate-pulse' :
+                                'bg-slate-800 text-slate-500 border border-slate-700'
+                    }`}>
+                    {source.last_run_status || 'IDLE'}
                 </div>
             </div>
         </div>

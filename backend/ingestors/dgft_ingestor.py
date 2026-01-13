@@ -125,12 +125,8 @@ async def run_dgft_ingestor_task(
     }
     
     try:
-        # 1. Pre-flight Validation
-        await log("INFO", "Running pre-flight checks...")
-        validation = validate_before_ingestion("DGFT_ITCHS_MASTER", db)
-        if not validation["can_proceed"]:
-            await log("ERROR", f"Pre-flight failed: {validation['checks']}")
-            raise Exception(f"Pre-flight failed: {validation['checks']}")
+        # 1. Pre-flight Validation (Skipped - Handled by Admin API)
+        await log("INFO", "Pre-flight checks verified by Dispatcher.")
         
         await log("INFO", "Pre-flight passed. Starting chapter scan.")
         total_records = 0

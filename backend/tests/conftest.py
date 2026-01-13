@@ -34,9 +34,10 @@ def session_fixture():
         dbapi_conn = connection.connection
         cursor = dbapi_conn.cursor()
         
-        schema_path = "backend/schema_admin.sql"
-        if not os.path.exists(schema_path):
-            schema_path = "../schema_admin.sql" 
+        # Look for schema relative to this file
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        backend_dir = os.path.dirname(test_dir)
+        schema_path = os.path.join(backend_dir, "schema_admin.sql")
             
         with open(schema_path, "r") as f:
             cursor.executescript(f.read())
