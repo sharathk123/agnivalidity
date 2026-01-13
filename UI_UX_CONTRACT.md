@@ -206,7 +206,29 @@ Agents MUST NOT:
 
 ---
 
-## 11. RETROFIT INSTRUCTIONS
+---
+
+## 11. ADMIN & OPERATIONS UI (EXCEPTION)
+
+The Admin Command Center (`/admin`) is an operational tool, NOT a user report.
+It has distinct rules:
+
+### Allowed for Admin Only
+- **Dark Mode / High Contrast**: Terminal-style black backgrounds for logs (`LogConsole`).
+- **Real-Time Indicators**: Pulse animations (Green/Red) to show system heartbeat.
+- **System Status Colors**: 
+  - Red: Critical / Blocked / Error
+  - Yellow: Warning / Compliance Risk (e.g., ICEGATE Version mismatch)
+  - Green: Healthy / Active
+- **Monospace Fonts**: For logs and raw data.
+
+### Rationale
+Operational tools require immediate visual feedback on system health. 
+A "calm" UI is dangerous if it hides a critical failure (e.g., Kill Switch active).
+
+---
+
+## 12. RETROFIT INSTRUCTIONS
 
 If existing UI violates this contract:
 - Remove animations first
@@ -218,7 +240,7 @@ Modern = Calm, Clear, Credible
 
 ---
 
-## 12. FINAL UI PRINCIPLE
+## 13. FINAL UI PRINCIPLE
 
 > “If an exporter prints this page and reads it on paper,
 > it should still work.”
