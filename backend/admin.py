@@ -85,13 +85,7 @@ class SystemSetting(BaseModel):
     description: Optional[str]
 
 # Database dependency
-def get_db():
-    from database import SessionLocal
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from database import get_db
 
 # ================================================================
 # STATUS ENDPOINTS

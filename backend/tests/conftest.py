@@ -8,9 +8,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
-from main import app, get_db as main_get_db
-from database import Base, get_db as database_get_db
-from admin import get_db as admin_get_db
+from main import app
+from database import Base, get_db
 
 # File-based SQLite
 TEST_DB_FILE = "./test.db"
@@ -62,9 +61,8 @@ def client_fixture(session):
     def get_db_override():
         yield session
     
-    app.dependency_overrides[main_get_db] = get_db_override
-    app.dependency_overrides[database_get_db] = get_db_override
-    app.dependency_overrides[admin_get_db] = get_db_override
+    # Single override propagates to all modules now using database.get_db
+    app.dependency_overrides[get_db] = get_db_override
     
     yield TestClient(app)
     app.dependency_overrides.clear()

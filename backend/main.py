@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 import uvicorn
 import os
 from reportlab.pdfgen import canvas
-from database import SessionLocal, HSCode, Country, MarketDemand, PriceBand, CertificationRequirement, Certification, CertificationNotes, RiskScoreSummary, RiskScoreDetail, Recommendation, init_db
+from database import SessionLocal, HSCode, Country, MarketDemand, PriceBand, CertificationRequirement, Certification, CertificationNotes, RiskScoreSummary, RiskScoreDetail, Recommendation, init_db, get_db
 from admin import router as admin_router
 from intelligence import router as intelligence_router
 
@@ -18,14 +18,6 @@ app = FastAPI(title="EXIM Insight India - Enterprise SaaS")
 # Include admin router
 app.include_router(admin_router)
 app.include_router(intelligence_router)
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # Enable CORS for frontend development
 app.add_middleware(
