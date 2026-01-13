@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calculator, FileText, CheckCircle, ArrowRight, Zap, ShieldCheck } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Calculator, FileText, CheckCircle, ArrowRight, Zap, ShieldCheck, BadgeCheck } from 'lucide-react';
 
 interface PricePredictionWidgetProps {
     baseCost: number;
@@ -16,20 +17,38 @@ interface PricePredictionWidgetProps {
 export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
     baseCost, setBaseCost,
     logistics, setLogistics,
-    incoterm, setIncoterm,
+    incoterm,
     insight,
     onGenerateQuote,
     isGeneratingQuote
 }) => {
+    const location = useLocation();
+
     // Derived Calculations
     const totalIncentives = insight?.metrics?.total_incentives || (baseCost * 0.05); // Fallback mock 5%
     const subtotal = baseCost + logistics;
     const netCost = subtotal - totalIncentives;
     const margin = netCost * 0.15; // 15% Margin
-    const finalQuote = netCost + margin;
+
+    // Check URL params for GI Status override or use insight prop
+    const queryParams = new URLSearchParams(location.search);
+    const paramGiStatus = queryParams.get('gi_status');
+    const effectiveGiStatus = paramGiStatus || insight?.gi_status;
+
+    const giPremium = effectiveGiStatus === 'REGISTERED' ? netCost * 0.20 : 0;
+    const finalQuote = netCost + margin + giPremium;
 
     // Engine Latency Simulation
     const [latency, setLatency] = useState(0.4);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const paramBaseCost = params.get('base_cost');
+
+        if (paramBaseCost) {
+            setBaseCost(Number(paramBaseCost));
+        }
+    }, [location.search, setBaseCost]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -93,6 +112,17 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                             </div>
                             <span className="text-lg font-bold text-emerald-400 font-mono">- ₹{totalIncentives.toFixed(0)}</span>
                         </div>
+
+                        {/* GI Premium Line Item */}
+                        {effectiveGiStatus === 'REGISTERED' && (
+                            <div className="flex justify-between items-center py-2 border-b border-emerald-900/30 text-emerald-400 bg-emerald-900/10 px-2 rounded">
+                                <div className="flex items-center gap-2">
+                                    <BadgeCheck className="w-4 h-4" />
+                                    <span className="text-sm font-bold">GI Brand Premium (+20%)</span>
+                                </div>
+                                <span className="font-mono font-bold">+₹{Math.round(giPremium).toLocaleString()}</span>
+                            </div>
+                        )}
 
                         {/* Margin */}
                         <div className="flex justify-between items-center px-3 py-1">

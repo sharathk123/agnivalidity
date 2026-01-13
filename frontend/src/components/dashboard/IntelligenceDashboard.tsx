@@ -56,7 +56,14 @@ export const IntelligenceDashboard: React.FC = () => {
             // Simulate delay for effect if needed, but API might be fast
             if (Date.now() % 2 === 0) await new Promise(r => setTimeout(r, 800));
 
-            setInsight(calcRes.data);
+            // MOCK: Inject GI Logic for Turmeric
+            const enhancedData = {
+                ...calcRes.data,
+                gi_status: hsCode.startsWith('091030') ? 'REGISTERED' : 'N/A',
+                brand_lineage: hsCode.startsWith('091030') ? 'Invaluable Treasures of Incredible India' : null
+            };
+
+            setInsight(enhancedData);
         } catch (err) {
             console.error(err);
             setInsight(null);
@@ -81,7 +88,9 @@ export const IntelligenceDashboard: React.FC = () => {
                 logistics: logistics,
                 incoterm: incoterm,
                 payment_terms: "30% Advance, 70% against BL",
-                exchange_rate: 83.5
+                exchange_rate: 83.5,
+                gi_status: insight.gi_status,
+                brand_lineage: insight.brand_lineage
             });
 
             if (res.data.status === 'success') {

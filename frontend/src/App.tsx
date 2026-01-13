@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { AdminCommandCenter } from './components/admin/CommandCenter';
 import { AdminControl } from './components/admin/AdminControl';
 import { QuarantineTerminal } from './components/admin/QuarantineTerminal';
@@ -8,6 +9,7 @@ import LandingPage from './components/landing/LandingPage';
 import { MarketTrends } from './components/dashboard/MarketTrends';
 import { PricePredictionWidget } from './components/dashboard/PricePredictionWidget';
 import { GlobalDemandHeatmap } from './components/dashboard/GlobalDemandHeatmap';
+import { ODOPSourcingTerminal } from './components/dashboard/ODOPSourcingTerminal';
 
 // Wrappers for focused views
 const MarketTrendsWrapper = () => (
@@ -39,40 +41,44 @@ const PricingEngineWrapper = () => {
   );
 };
 
-const usePath = () => {
-  const [path, setPath] = useState(window.location.pathname);
-  useEffect(() => {
-    const onPopState = () => setPath(window.location.pathname);
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, []);
-  return path;
-};
-
 function App() {
-  const path = usePath();
+  const location = useLocation();
+  const isPublicRoute = location.pathname === '/' || location.pathname === '/landing';
 
-  if (path === '/' || path === '/landing') {
-    return <LandingPage />;
+  if (isPublicRoute) {
+    return (
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/landing" element={<LandingPage />} />
+      </Routes>
+    );
   }
-
-
 
   return (
     <DashboardLayout>
-      {path === '/user/system-control' ? <AdminControl /> :
-        path === '/admin/command-center' ? <AdminCommandCenter /> :
-          path === '/admin/command-center/quarantine' ? <QuarantineTerminal /> :
-            path === '/user/market-trends' ? (
-              <div className="p-8 h-screen animate-fade-in"><MarketTrendsWrapper /></div>
-            ) :
-              path === '/user/global-demand' ? (
-                <div className="p-8 h-screen animate-fade-in w-full"><GlobalDemandHeatmap /></div>
-              ) :
-                path === '/user/pricing-engine' ? (
-                  <div className="p-8 h-screen animate-fade-in flex flex-col items-center justify-center"><PricingEngineWrapper /></div>
-                ) :
-                  <IntelligenceDashboard />}
+      <Routes>
+        <Route path="/user/system-control" element={<AdminControl />} />
+        <Route path="/admin/command-center" element={<AdminCommandCenter />} />
+        <Route path="/admin/command-center/quarantine" element={<QuarantineTerminal />} />
+
+        <Route path="/user/market-trends" element={
+          <div className="p-8 h-screen animate-fade-in"><MarketTrendsWrapper /></div>
+        } />
+
+        <Route path="/user/global-demand" element={
+          <div className="p-8 h-screen animate-fade-in w-full"><GlobalDemandHeatmap /></div>
+        } />
+
+        <Route path="/user/odop-sourcing" element={
+          <div className="p-8 h-[calc(100vh-5rem)] animate-fade-in w-full"><ODOPSourcingTerminal /></div>
+        } />
+
+        <Route path="/user/pricing-engine" element={
+          <div className="p-8 h-screen animate-fade-in flex flex-col items-center justify-center"><PricingEngineWrapper /></div>
+        } />
+
+        <Route path="*" element={<IntelligenceDashboard />} />
+      </Routes>
     </DashboardLayout>
   );
 }

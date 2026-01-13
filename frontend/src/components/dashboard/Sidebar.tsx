@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, LayoutGrid, BarChart3, Settings, Database, Server, Activity, TrendingUp, DollarSign, Globe } from 'lucide-react';
+import { Cpu, LayoutGrid, BarChart3, Settings, Database, Server, Activity, TrendingUp, DollarSign, Globe, Boxes } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
     const path = window.location.pathname;
@@ -40,6 +40,12 @@ export const Sidebar: React.FC = () => {
                     onClick={() => navigate('/user/market-trends')}
                     icon={<TrendingUp className="w-5 h-5" />}
                     label="Market Trends"
+                />
+                <NavItem
+                    active={path === '/user/odop-sourcing'}
+                    onClick={() => navigate('/user/odop-sourcing')}
+                    icon={<Boxes className="w-5 h-5" />}
+                    label="ODOP Sourcing"
                 />
                 <NavItem
                     active={path === '/user/global-demand'}
