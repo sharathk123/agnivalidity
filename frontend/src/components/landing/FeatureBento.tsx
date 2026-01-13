@@ -7,7 +7,7 @@ export const FeatureBento: React.FC = () => {
             {/* Background Gradients */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-950/20 via-slate-950/0 to-slate-950/0 pointer-events-none"></div>
 
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="w-full max-w-[1440px] mx-auto px-6 relative z-10">
                 <div className="text-center mb-16">
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -31,11 +31,11 @@ export const FeatureBento: React.FC = () => {
                     </motion.h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                     {/* Card A: Intelligence Spark */}
                     <BentoCard delay={0.1}>
                         <div className="h-full flex flex-col justify-between">
-                            <div className="relative h-32 flex items-center justify-center mb-6">
+                            <div className="relative flex flex-col items-center justify-center gap-4 mb-6 pt-4">
                                 {/* Gauge Visual */}
                                 <div className="w-24 h-24 rounded-full border-4 border-slate-800 border-t-emerald-500 border-r-emerald-500 rotate-45 relative shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                                     <div className="absolute inset-0 flex items-center justify-center -rotate-45">
@@ -45,7 +45,7 @@ export const FeatureBento: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="absolute bottom-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
+                                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse z-10">
                                     Verdict: GO
                                 </div>
                             </div>
@@ -119,7 +119,7 @@ export const FeatureBento: React.FC = () => {
                     <BentoCard delay={0.4}>
                         <div className="h-full flex flex-col justify-between">
                             <div className="grid grid-cols-2 gap-2 mb-8 content-start">
-                                {['DGFT', 'APEDA', 'ICEGATE', 'REUTERS'].map((src, i) => (
+                                {['DGFT', 'APEDA', 'ICEGATE', 'REUTERS'].map((src) => (
                                     <div key={src} className="p-2 bg-slate-950 border border-slate-800 rounded flex flex-col gap-1" >
                                         <div className="flex justify-between items-center">
                                             <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{src}</div>

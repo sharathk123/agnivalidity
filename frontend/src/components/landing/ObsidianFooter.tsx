@@ -21,7 +21,7 @@ const ObsidianFooter: React.FC = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="w-full max-w-[1440px] mx-auto px-6 relative z-10">
                 {/* 2. Structural Navigation & Links */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 lg:divide-x divide-slate-800/50">
                     <FooterColumn title="Analysis Modules">

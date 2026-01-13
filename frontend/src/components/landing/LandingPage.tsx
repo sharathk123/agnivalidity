@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import SearchGateway from './SearchGateway';
 import FeatureBento from './FeatureBento';
+import ObsidianPricing from './ObsidianPricing';
 import ObsidianFooter from './ObsidianFooter';
 
 const LandingPage: React.FC = () => {
@@ -11,7 +12,7 @@ const LandingPage: React.FC = () => {
         <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-brand-100 selection:text-brand-900 overflow-x-hidden relative">
             {/* Regulatory Patch Footer (Sticky) */}
             <div className="fixed bottom-0 left-0 w-full bg-slate-900 text-white py-2 px-4 z-[100] border-t border-slate-800">
-                <div className="container mx-auto flex items-center justify-center gap-6 text-[9px] font-black uppercase tracking-[0.2em]">
+                <div className="w-full max-w-[1440px] mx-auto flex items-center justify-center gap-6 text-[9px] font-black uppercase tracking-[0.2em]">
                     <span className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         ICES 1.5 ACTIVE (SYNC: OK)
@@ -25,7 +26,7 @@ const LandingPage: React.FC = () => {
 
             {/* Navigation (Dark Mode for Hero) */}
             <nav className="absolute top-0 left-0 w-full z-50 border-b border-white/5 bg-slate-950/50 backdrop-blur-sm">
-                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+                <div className="w-full max-w-[1440px] mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-brand-600 rounded flex items-center justify-center text-white font-bold text-xl shadow-[0_0_20px_rgba(79,70,229,0.5)]">A</div>
                         <div>
@@ -57,7 +58,7 @@ const LandingPage: React.FC = () => {
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950/80 to-slate-950"></div>
                 </div>
 
-                <div className="container mx-auto px-6 relative z-10 text-center">
+                <div className="w-full max-w-[1440px] mx-auto px-6 relative z-10 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -109,7 +110,7 @@ const LandingPage: React.FC = () => {
                     <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
                 </div>
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="w-full max-w-[1440px] mx-auto px-6 relative z-10">
                     <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16">
                         <div className="max-w-xl">
                             <h3 className="text-4xl font-display font-bold leading-none tracking-tight mb-6">
@@ -158,7 +159,7 @@ const LandingPage: React.FC = () => {
             <section className="bg-slate-950 py-32 border-t border-slate-900 relative overflow-hidden" id="features">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/20 via-slate-950/0 to-slate-950/0 pointer-events-none"></div>
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="w-full max-w-[1440px] mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-start">
                         {/* Left Column: Verdict Intelligence */}
                         <div className="space-y-12">
@@ -252,8 +253,10 @@ const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Section Footer */}
-
             </section>
+
+            {/* Obsidian Pricing Matrix */}
+            <ObsidianPricing />
 
             {/* Obsidian Footer */}
             <ObsidianFooter />
