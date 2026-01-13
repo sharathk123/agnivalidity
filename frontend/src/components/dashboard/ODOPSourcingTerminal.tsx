@@ -1,99 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+
 import { useNavigate } from 'react-router-dom';
-import { MapPin, TrendingUp, Boxes, BadgeCheck, Scale } from 'lucide-react';
-import { MapContainer, TileLayer, CircleMarker } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import { MapPin, TrendingUp, Boxes, BadgeCheck, Scale, MousePointer2, RefreshCw } from 'lucide-react';
+
+import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker } from 'react-simple-maps';
+// import { scaleLinear } from 'd3-scale'; // Unused for now, kept for future heatmap scaling
+
+const INDIA_TOPO_JSON = "/india-districts.json"; // Ensure this file exists in public/
+
+
+
+// Type Definition
+interface OdopRecord {
+    id: string;
+    name: string;
+    state: string;
+    product: string;
+    product_name?: string; // Add support for both if needed, but registry uses product_name
+    hsCode: string;
+    hs_code?: string;
+
+    gi: boolean;
+    deh: boolean;
+    localPrice: number;
+    globalPrice: number;
+    premiumPotential: number;
+    brandLineage: string;
+    giStatus: string;
+    capacity: string;
+    lat: number;
+    lng: number;
+}
 
 export const ODOPSourcingTerminal: React.FC = () => {
     const navigate = useNavigate();
     const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
+    const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
 
-    // Real-world coordinates [lat, lon] for Leaflet (SimpleMaps was lon, lat)
-    const districts = [
-        {
-            id: 'ODOP-UP-AGRA-001',
-            name: 'Agra',
-            state: 'Uttar Pradesh',
-            product: 'Leather Footwear',
-            gi: true,
-            deh: true,
-            localPrice: 850,
-            globalPrice: 1200,
-            coordinates: [27.1767, 78.0081],
-            hsCode: '640320',
-            premiumPotential: 65,
-            brandLineage: 'Mughal Heritage Craft',
-            giStatus: 'REGISTERED',
-            capacity: 'HIGH'
-        },
-        {
-            id: 'ODOP-TN-CHE-045',
-            name: 'Chennai',
-            state: 'Tamil Nadu',
-            product: 'Automotive Parts',
-            gi: false,
-            deh: true,
-            localPrice: 450,
-            globalPrice: 580,
-            coordinates: [13.0827, 80.2707],
-            hsCode: '870810',
-            premiumPotential: 20,
-            brandLineage: 'Detroit of Asia',
-            giStatus: 'N/A',
-            capacity: 'HIGH'
-        },
-        {
-            id: 'ODOP-GJ-SUR-012',
-            name: 'Surat',
-            state: 'Gujarat',
-            product: 'Synthetic Textiles',
-            gi: false,
-            deh: true,
-            localPrice: 210,
-            globalPrice: 340,
-            coordinates: [21.1702, 72.8311],
-            hsCode: '540752',
-            premiumPotential: 35,
-            brandLineage: 'Silk City Excellence',
-            giStatus: 'N/A',
-            capacity: 'DEVELOPING'
-        },
-        {
-            id: 'ODOP-WB-DAR-089',
-            name: 'Darjeeling',
-            state: 'West Bengal',
-            product: 'Orthodox Tea',
-            gi: true,
-            deh: false,
-            localPrice: 1200,
-            globalPrice: 2800,
-            coordinates: [27.0360, 88.2627],
-            hsCode: '090240',
-            premiumPotential: 98,
-            brandLineage: 'Invaluable Treasures of Incredible India',
-            giStatus: 'REGISTERED',
-            capacity: 'HIGH'
-        },
-        {
-            id: 'ODOP-TS-NIZ-022',
-            name: 'Nizamabad',
-            state: 'Telangana',
-            product: 'Turmeric',
-            gi: true,
-            deh: true,
-            localPrice: 9000,
-            globalPrice: 14500,
-            coordinates: [18.6725, 78.0982],
-            hsCode: '091030',
-            premiumPotential: 92,
-            brandLineage: 'Golden Spice of Telangana',
-            giStatus: 'REGISTERED',
-            capacity: 'HIGH'
+
+    const [registry, setRegistry] = useState<Record<string, OdopRecord>>({});
+    const [loading, setLoading] = useState(true);
+
+    // Fetch ODOP Data from Backend
+    const fetchRegistry = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost:8000/api/v1/odop-registry');
+            if (response.ok) {
+                const data = await response.json();
+                setRegistry(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch ODOP registry:", error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
-    const activeData = districts.find(d => d.name === hoveredDistrict) || null;
-    const arbitrage = activeData ? ((activeData.globalPrice - activeData.localPrice) / activeData.localPrice * 100).toFixed(1) : '0.0';
+    // Metrics Calculation
+    const metrics = useMemo(() => {
+        const hubs = Object.values(registry);
+        return {
+            totalHubs: hubs.length,
+            totalDistricts: new Set(hubs.map(h => h.name)).size,
+            totalProducts: new Set(hubs.map(h => h.product || h.product_name)).size
+        };
+    }, [registry]);
+
+    useEffect(() => {
+        fetchRegistry();
+
+        // Auto-refresh every 60 seconds
+        const interval = setInterval(fetchRegistry, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
+
+    const activeDistrictName = selectedDistrict || hoveredDistrict;
+    const activeData = activeDistrictName ? registry[activeDistrictName] : null;
+
+    // Calculate arbitrage safely
+    const arbitrage = activeData
+        ? ((activeData.globalPrice - activeData.localPrice) / activeData.localPrice * 100).toFixed(1)
+        : '0.0';
 
     const handleInitiateSourcing = () => {
         if (!activeData) return;
@@ -108,93 +97,222 @@ export const ODOPSourcingTerminal: React.FC = () => {
         navigate(`/user/pricing-engine?${params.toString()}`);
     };
 
+
+
     return (
-        <div className="bg-slate-950/90 border border-slate-700/50 rounded-lg h-full flex overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)] relative">
+        <div className="bg-slate-950/90 border border-slate-700/50 rounded-lg h-full flex overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)] relative select-none">
+            {/* Grid Background */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none"></div>
 
             <div className="flex w-full h-full relative z-10">
-                {/* 1. Interactive Map Area (60%) */}
-                <div className="w-[60%] border-r border-slate-800/50 relative bg-slate-900/20 z-0">
-                    <div className="absolute top-6 left-6 z-[1000] pointer-events-none">
-                        <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Sourcing Map</h3>
-                        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">One District One Product • India</div>
+                {/* 1. Interactive Map Area (65%) */}
+                <div className="w-[65%] border-r border-slate-800/50 relative bg-slate-900/40 z-0 overflow-hidden">
+
+                    <div className="absolute top-6 left-6 z-[10] flex justify-between w-[calc(100%-48px)] pointer-events-none">
+                        <div>
+                            <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Sourcing Map</h3>
+                            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
+                                {loading ? "Syncing with Invest India..." : `One District One Product • India • ${metrics.totalHubs} Verified Hubs Active`}
+                            </div>
+
+                        </div>
+                        <button
+                            onClick={() => fetchRegistry()}
+                            disabled={loading}
+                            className="pointer-events-auto bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700/50 p-2 rounded-full transition-all group active:scale-90 disabled:opacity-50"
+                            title="Sync Data"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 text-slate-400 group-hover:text-brand-400 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
                     </div>
 
-                    <MapContainer
-                        center={[22.5937, 78.9629]}
-                        zoom={5}
-                        style={{ height: '100%', width: '100%', background: '#020617' }}
-                        zoomControl={false}
-                        attributionControl={false}
+
+                    <ComposableMap
+                        projection="geoMercator"
+                        projectionConfig={{
+                            scale: 1100,
+                            center: [82, 23] // Center of India
+                        }}
+                        className="w-full h-full"
+                        style={{ background: 'transparent' }}
                     >
-                        {/* Dark Theme Tiles */}
-                        <TileLayer
-                            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                        />
+                        <ZoomableGroup center={[82, 23]} zoom={1} minZoom={0.5} maxZoom={4}>
+                            <Geographies geography={INDIA_TOPO_JSON}>
+                                {({ geographies }) =>
+                                    geographies.map((geo) => {
+                                        // TopoJSON property for district name.
+                                        // geoBoundaries (ADM2) uses 'shapeName' 
+                                        const districtName = geo.properties.shapeName || geo.properties.district || geo.properties.dtname || geo.properties.NAME_2;
+                                        const hasData = registry[districtName];
+                                        // const isHovered = hoveredDistrict === districtName; 
+                                        // const isSelected = selectedDistrict === districtName; 
 
-                        {/* ODOP Data Points */}
-                        {districts.map((d) => (
-                            <CircleMarker
-                                key={d.id}
-                                center={d.coordinates as [number, number]}
-                                pathOptions={{
-                                    color: d.gi ? '#10b981' : '#fbbf24',
-                                    fillColor: d.gi ? '#10b981' : '#fbbf24',
-                                    fillOpacity: hoveredDistrict === d.name ? 0.8 : 0.4,
-                                    weight: hoveredDistrict === d.name ? 2 : 1,
-                                }}
-                                radius={hoveredDistrict === d.name ? 8 : 5}
-                                eventHandlers={{
-                                    mouseover: () => setHoveredDistrict(d.name),
-                                    mouseout: () => setHoveredDistrict(null),
-                                    click: () => setHoveredDistrict(d.name)
-                                }}
-                            />
-                        ))}
-                    </MapContainer>
+                                        return (
+                                            <Geography
+                                                key={geo.rsmKey}
+                                                geography={geo}
+                                                onMouseEnter={() => setHoveredDistrict(districtName)}
+                                                onMouseLeave={() => setHoveredDistrict(null)}
+                                                onClick={() => setSelectedDistrict(districtName === selectedDistrict ? null : districtName)}
+                                                style={{
+                                                    default: {
+                                                        fill: hasData ? (hasData.gi ? '#065f46' : '#92400e') : '#0f172a', // More vibrant Green/Amber for hubs
+                                                        stroke: hasData ? (hasData.gi ? '#10b981' : '#f59e0b') : '#334155',
+                                                        strokeWidth: hasData ? 2 : 0.5,
+                                                        outline: 'none',
+                                                        transition: 'all 0.3s ease'
+                                                    },
+                                                    hover: {
+                                                        fill: hasData ? (hasData.gi ? '#067a5a' : '#b45309') : '#1e293b',
+                                                        stroke: '#ffffff',
+                                                        strokeWidth: 1.5,
+                                                        outline: 'none',
+                                                        cursor: hasData ? 'pointer' : 'default'
+                                                    },
+                                                    pressed: {
+                                                        fill: '#1e1b4b',
+                                                        stroke: '#6366f1',
+                                                        outline: 'none'
+                                                    }
+                                                }}
 
-                    {/* Pop-over Inlay (On Hover) */}
+                                            />
+                                        );
+                                    })
+                                }
+                            </Geographies>
+
+                            {/* Dynamic Markers for ODOP Hubs */}
+                            {Object.values(registry).map((d) => (
+                                <Marker
+                                    key={d.id}
+                                    coordinates={[d.lng, d.lat]}
+                                    onMouseEnter={() => setHoveredDistrict(d.name)}
+                                    onMouseLeave={() => setHoveredDistrict(null)}
+                                    // @ts-ignore
+                                    onClick={() => setSelectedDistrict(d.name === selectedDistrict ? null : d.name)}
+                                >
+                                    {/* Constant Pulse for all Hubs */}
+                                    <circle
+                                        r={10}
+                                        fill={d.gi ? "#10b981" : "#f59e0b"}
+                                        opacity={0.3}
+                                        className="animate-pulse-slow"
+                                    />
+
+                                    {/* Main Hub Node */}
+                                    <circle
+                                        r={4.5}
+                                        fill={d.gi ? "#10b981" : "#f59e0b"}
+                                        stroke="#ffffff"
+                                        strokeWidth={1.5}
+                                        className="cursor-pointer transition-transform hover:scale-150 active:scale-95 animate-glow"
+                                    />
+
+
+                                    {/* Interactive Echo */}
+                                    {hoveredDistrict === d.name && (
+                                        <circle
+                                            r={15}
+                                            fill="none"
+                                            stroke={d.gi ? "#10b981" : "#f59e0b"}
+                                            strokeWidth={1.5}
+                                            className="animate-ping"
+                                        />
+                                    )}
+                                </Marker>
+                            ))}
+
+
+                        </ZoomableGroup>
+                    </ComposableMap>
+
+                    {/* 📊 Metrics HUD Overlay - Compact Version */}
+                    {!loading && metrics.totalHubs > 0 && (
+                        <div className="absolute bottom-6 left-6 z-[10] flex gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {[
+                                { label: 'Locations', value: metrics.totalHubs, icon: '📍' },
+                                { label: 'Districts', value: metrics.totalDistricts, icon: '🏛️' },
+                                { label: 'Products', value: metrics.totalProducts, icon: '📦' }
+                            ].map((m, i) => (
+                                <div key={i} className="bg-slate-900/60 backdrop-blur-md border border-slate-700/30 p-2.5 rounded-lg shadow-xl flex flex-col min-w-[90px] group hover:border-brand-500/50 transition-colors">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{m.label}</span>
+                                        <span className="text-[10px] opacity-70">{m.icon}</span>
+                                    </div>
+                                    <div className="text-lg font-display font-black text-white mt-0.5 group-hover:text-brand-400 transition-colors">
+                                        {m.value}
+                                    </div>
+                                    <div className="h-0.5 w-full bg-slate-800/50 mt-1.5 rounded-full overflow-hidden">
+                                        <div className="h-full bg-brand-500 w-1/3 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+
+
+
+                    {/* Legend - Moved to Right */}
+                    <div className="absolute bottom-6 right-6 flex gap-4 z-[20] bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50 backdrop-blur-md pointer-events-none shadow-2xl">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] border border-white/30 animate-pulse"></span>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">GI HUB</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] border border-white/30"></span>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">NON-GI</span>
+                        </div>
+                    </div>
+
+
+                    {/* Inlay Popover - Attached to Cursor or Fixed */}
                     {activeData && (
-                        <div className="absolute bottom-24 right-6 bg-slate-900/90 border border-slate-700 backdrop-blur-md p-4 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] z-[1000] w-64 animate-fade-in text-left">
-                            <div className="flex justify-between items-start mb-2">
-                                <div>
-                                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{activeData.state}</div>
-                                    <div className="text-lg font-bold text-white font-display uppercase tracking-tight">{activeData.name}</div>
-                                </div>
-                                {activeData.gi && <BadgeCheck className="w-5 h-5 text-emerald-400" />}
-                            </div>
-                            <div className="border-t border-slate-800 my-2"></div>
-                            <div className="space-y-2">
-                                <div>
-                                    <div className="text-[9px] text-slate-500 font-bold uppercase">Primary ODOP</div>
-                                    <div className="text-xs font-mono text-indigo-400 font-bold truncate">{activeData.product}</div>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <div className="text-[9px] text-slate-500 font-bold uppercase">Sourcing Capacity</div>
-                                    <div className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${activeData.capacity === 'HIGH' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                        }`}>
-                                        {activeData.capacity}
+                        <div className="absolute top-24 right-6 w-72 pointer-events-none z-20 animate-in slide-in-from-right-4 fade-in duration-300">
+                            <div className="bg-slate-900/80 border border-slate-700/80 backdrop-blur-xl p-5 rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.6)] relative overflow-hidden">
+                                {/* Glow Effect */}
+                                <div className={`absolute top-0 right-0 w-24 h-24 blur-[60px] opacity-40 ${activeData.gi ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{activeData.state}</span>
+                                            <h2 className="text-xl font-bold text-white font-display uppercase tracking-tight">{activeData.name}</h2>
+                                        </div>
+                                        {activeData.gi && <BadgeCheck className="w-6 h-6 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="bg-slate-950/50 border border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase">Product</span>
+                                            <span className="text-xs font-mono font-bold text-indigo-300 truncate max-w-[120px]">{activeData.product}</span>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <div className="flex-1 bg-slate-950/50 border border-slate-800 p-2.5 rounded-lg">
+                                                <div className="text-[9px] font-bold text-slate-500 uppercase mb-1">Local Rate</div>
+                                                <div className="text-sm font-mono font-bold text-white">₹{activeData.localPrice}</div>
+                                            </div>
+                                            <div className="flex-1 bg-slate-950/50 border border-slate-800 p-2.5 rounded-lg border-l-2 border-l-emerald-500/50">
+                                                <div className="text-[9px] font-bold text-slate-500 uppercase mb-1">Prem. Score</div>
+                                                <div className="text-sm font-mono font-bold text-emerald-400">{activeData.premiumPotential}/100</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center gap-2 text-[10px] text-slate-400 italic">
+                                        <MousePointer2 className="w-3 h-3" />
+                                        <span>Click region to lock/unlock selection</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
-
-                    {/* Legend */}
-                    <div className="absolute bottom-6 left-6 flex gap-4 z-[1000] bg-slate-950/50 p-2 rounded-md border border-slate-800/50 backdrop-blur-sm pointer-events-none">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            <span className="text-[9px] font-mono text-slate-400 uppercase">GI Tagged</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                            <span className="text-[9px] font-mono text-slate-400 uppercase">Not GI Tagged</span>
-                        </div>
-                    </div>
                 </div>
 
-                {/* 2. Intelligence Panel (40%) */}
-                <div className="w-[40%] bg-slate-900/50 backdrop-blur-sm p-8 flex flex-col z-10">
+                {/* 2. Intelligence Panel (35%) */}
+                <div className="w-[35%] bg-slate-900/50 backdrop-blur-sm p-8 flex flex-col z-10 border-l border-slate-800">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
                             <Boxes className="w-5 h-5 text-emerald-400" />
@@ -277,7 +395,7 @@ export const ODOPSourcingTerminal: React.FC = () => {
                                         <div className="text-lg font-mono font-bold text-slate-300">₹{activeData.localPrice}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-[9px] text-slate-500 mb-0.5">Global Price</div>
+                                        <div className="text-[9px] font-mono text-slate-500 mb-0.5">Global Price</div>
                                         <div className="text-lg font-mono font-bold text-indigo-400">₹{activeData.globalPrice}</div>
                                     </div>
                                 </div>
@@ -320,4 +438,3 @@ export const ODOPSourcingTerminal: React.FC = () => {
         </div>
     );
 };
-

@@ -139,7 +139,30 @@ class CompanyProfile(Base):
     swift_code = Column(String(11))
     bank_name = Column(String)
     bank_branch = Column(String)
+    bank_branch = Column(String)
     account_number = Column(String)
+
+class OdopRegistry(Base):
+    __tablename__ = "odop_registry"
+    
+    id = Column(Integer, primary_key=True)
+    district = Column(String, unique=True, index=True)
+    state = Column(String)
+    product_name = Column(String)
+    hs_code = Column(String(10))
+    gi_status = Column(String) # REGISTERED | APPLIED | N/A
+    export_hub_status = Column(Integer, default=0) # 1 or 0
+    
+    # Financials (Mock/Estimates)
+    local_price = Column(Float)
+    global_price = Column(Float)
+    premium_potential = Column(Integer) # 0-100
+    brand_lineage = Column(String)
+    capacity = Column(String) # HIGH | MEDIUM | LOW
+    lat = Column(Float)
+    lng = Column(Float)
+
+
 
 class QuoteHistory(Base):
     __tablename__ = "quote_history"

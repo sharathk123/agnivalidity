@@ -46,5 +46,35 @@ async def get_insight(hs_code_id: int, country_id: int, db: Session = Depends(ge
     # This is a stub for the legacy intelligence endpoint
     return {"status": "legacy", "message": "Use /api/v1/advisory/calculate for Agni intelligence"}
 
+@app.get("/api/v1/odop-registry")
+async def get_odop_registry(db: Session = Depends(get_db)):
+    """
+    Get the full ODOP Registry (District -> Data Map)
+    """
+    from database import OdopRegistry
+    records = db.query(OdopRegistry).all()
+    
+    registry = {}
+    for r in records:
+        registry[r.district] = {
+            "id": f"ODOP-{r.state[:2].upper()}-{r.district[:3].upper()}-{r.id:03d}",
+            "name": r.district,
+            "state": r.state,
+            "product": r.product_name,
+            "hsCode": r.hs_code,
+            "gi": r.gi_status == 'REGISTERED',
+            "deh": r.export_hub_status == 1,
+            "localPrice": r.local_price,
+            "globalPrice": r.global_price,
+            "premiumPotential": r.premium_potential,
+            "brandLineage": r.brand_lineage,
+            "giStatus": r.gi_status,
+            "capacity": r.capacity,
+            "lat": r.lat,
+            "lng": r.lng
+        }
+
+    return registry
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

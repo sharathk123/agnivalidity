@@ -34,3 +34,37 @@ h6 {
 .transition-corporate {
   @apply transition-all duration-200 ease-in-out;
 }
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes glow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}

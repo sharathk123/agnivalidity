@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { SourceCard } from './SourceCard';
 import { LogConsole } from './LogConsole';
+import { ShieldAlert } from 'lucide-react';
+
 import axios from 'axios';
 
 interface DashboardStatus {
@@ -45,6 +47,7 @@ export const AdminCommandCenter: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [killSwitchLoading, setKillSwitchLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isDryRun, setIsDryRun] = useState(true);
 
     const fetchData = async () => {
         try {
@@ -81,13 +84,24 @@ export const AdminCommandCenter: React.FC = () => {
 
     const runIngestion = async (sourceId: number) => {
         try {
-            await axios.post(`${API_BASE}/ingestion/${sourceId}/start?dry_run=true`);
+            await axios.post(`${API_BASE}/ingestion/${sourceId}/start?dry_run=${isDryRun}`);
             setSources(prev => prev.map(s => s.id === sourceId ? { ...s, last_run_status: 'RUNNING' } : s));
         } catch (error) {
             console.error('Failed to start ingestion', error);
             alert('Failed to start ingestion.');
         }
     };
+
+    const stopIngestion = async (sourceId: number) => {
+        try {
+            await axios.post(`${API_BASE}/ingestion/${sourceId}/stop`);
+            setSources(prev => prev.map(s => s.id === sourceId ? { ...s, last_run_status: 'IDLE' } : s));
+        } catch (error) {
+            console.error('Failed to stop ingestion', error);
+            alert('Failed to stop ingestion.');
+        }
+    };
+
 
     if (loading && !status) return <div className="p-12 text-center text-slate-500 font-bold uppercase tracking-widest animate-pulse font-mono">Establishing Uplink...</div>;
 
@@ -98,127 +112,168 @@ export const AdminCommandCenter: React.FC = () => {
     );
 
     return (
-        <div className={`p-8 animate-fade-in flex flex-col min-h-screen bg-slate-950 relative overflow-hidden transition-colors duration-500 ${isSystemPaused ? 'bg-rose-950/20' : ''}`}>
-            {/* Global Grid Overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.05] pointer-events-none"></div>
-
-            {/* Header */}
-            <div className="flex justify-between items-end mb-8 relative z-10">
-                <div>
-                    <h2 className="text-3xl font-black font-display text-white tracking-tighter uppercase">Command Center</h2>
-                    <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">Admin Authority Level 0</div>
-                </div>
-
-                {/* Protocol Master Switch */}
-                <button
-                    onClick={toggleKillSwitch}
-                    disabled={killSwitchLoading}
-                    className={`flex items-center gap-4 px-6 py-3 rounded border transition-all shadow-[0_0_20px_rgba(0,0,0,0.2)] group ${isSystemPaused
-                        ? 'bg-rose-950/80 border-rose-500 text-rose-400 shadow-[0_0_30px_rgba(225,29,72,0.3)]'
-                        : 'bg-slate-900 border-slate-700/50 text-emerald-400 hover:border-emerald-500/30'
-                        }`}
-                >
-                    <div className={`w-3 h-3 rounded-full ${isSystemPaused ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`}></div>
-                    <div className="flex flex-col text-right">
-                        <span className="text-[9px] font-black uppercase tracking-widest leading-none text-slate-500 group-hover:text-slate-400">Protocol Status</span>
-                        <span className="text-sm font-bold font-mono tracking-tighter leading-none mt-1">{isSystemPaused ? 'SUSPENDED' : 'ACTIVE'}</span>
-                    </div>
-                </button>
-            </div>
-
-            <div className="space-y-10 flex-1 w-full relative z-10">
-                {/* Metrics Ticker */}
-                <div className="grid grid-cols-4 gap-6">
-                    <MetricCard
-                        label="Operational Sources"
-                        value={`${sources.filter(s => s.is_active).length}/${status?.total_sources}`}
-                        trend="STABLE"
-                    />
-                    <MetricCard
-                        label="Lifecycle Records (24h)"
-                        value={status?.records_updated_24h.toLocaleString() || '0'}
-                        trend="UP"
-                        highlight
-                    />
-                    <MetricCard
-                        label="Interruption Cycles"
-                        value={status?.errors_24h || 0}
-                        trend={(status?.errors_24h ?? 0) > 0 ? 'RISK' : 'NOMINAL'}
-                        isError={(status?.errors_24h ?? 0) > 0}
-                        onClick={() => { window.history.pushState({}, '', '/admin/command-center/quarantine'); window.dispatchEvent(new PopStateEvent('popstate')); }}
-                    />
-                    <MetricCard
-                        label="Engine Latency"
-                        value={status?.status === 'healthy' ? '0.4ms' : 'HIGH'}
-                        trend="OPTIMAL"
-                    />
-                </div>
-
-                <div className="grid grid-cols-12 gap-10">
-                    {/* Ingestion Registry Searchable Grid */}
-                    <div className="col-span-12 lg:col-span-8 space-y-8">
-                        <div className="flex justify-between items-center bg-slate-900 border border-slate-700/50 p-6 rounded-lg shadow-[0_0_15px_rgba(79,70,229,0.05)]">
-                            <div className="flex flex-col">
-                                <h3 className="text-sm font-black text-white uppercase tracking-tighter font-display">Ingestion Registry</h3>
-                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1 font-mono">Found {filteredSources.length} Active Streams</span>
-                            </div>
-                            <div className="relative group">
-                                <div className="absolute -inset-0.5 bg-indigo-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                                <input
-                                    type="text"
-                                    placeholder="Filter Registry..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="relative w-72 bg-slate-950/50 border border-slate-800 rounded px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all placeholder:text-slate-700 font-mono focus:shadow-[0_0_15px_rgba(79,70,229,0.1)]"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {filteredSources.map(source => (
-                                <SourceCard
-                                    key={source.id}
-                                    source={source}
-                                    onRun={runIngestion}
-                                    disabled={isSystemPaused}
-                                />
-                            ))}
+        <div className={`flex flex-col min-h-screen bg-slate-950 relative overflow-hidden transition-colors duration-500 ${isSystemPaused ? 'bg-rose-950/20' : ''}`}>
+            {/* Global Emergency Bar */}
+            {isSystemPaused && (
+                <div className="sticky top-0 z-[100] bg-rose-600 text-white px-8 py-3 flex justify-between items-center animate-pulse-slow shadow-[0_4px_20px_rgba(225,29,72,0.4)] backdrop-blur-md">
+                    <div className="flex items-center gap-4">
+                        <ShieldAlert className="w-5 h-5" />
+                        <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-[.2em]">System-Wide Emergency Override Active</span>
+                            <span className="text-[9px] font-mono opacity-80 uppercase tracking-widest leading-none mt-0.5">All ingestion cycles suspended by internal authority</span>
                         </div>
                     </div>
+                    <button
+                        onClick={toggleKillSwitch}
+                        disabled={killSwitchLoading}
+                        className="group relative px-6 py-2 bg-white text-rose-600 text-[10px] font-black uppercase tracking-widest rounded shadow-lg hover:bg-rose-50 transition-all overflow-hidden border border-rose-200"
+                    >
+                        <span className="relative z-10 font-bold">{killSwitchLoading ? 'RESTORING PIPELINES...' : 'Restore & Continue All Jobs'}</span>
+                    </button>
+                </div>
+            )}
 
-                    {/* Vertical Control Sidebar */}
-                    <div className="col-span-12 lg:col-span-4 space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest font-display">System Telemetry</h3>
-                            <div className="flex gap-1.5 items-center px-2 py-1 bg-emerald-500/10 rounded border border-emerald-500/20">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                                <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Live Link</span>
+            <div className="p-8 animate-fade-in flex flex-col flex-1">
+                {/* Global Grid Overlay */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.05] pointer-events-none"></div>
+
+                {/* Header */}
+                <div className="flex justify-between items-end mb-8 relative z-10">
+                    <div>
+                        <h2 className="text-3xl font-black font-display text-white tracking-tighter uppercase">Command Center</h2>
+                        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">Admin Authority Level 0</div>
+                    </div>
+
+                    {/* Protocol Master Switch */}
+                    <button
+                        onClick={toggleKillSwitch}
+                        disabled={killSwitchLoading}
+                        className={`flex items-center gap-4 px-6 py-3 rounded border transition-all shadow-[0_0_20px_rgba(0,0,0,0.2)] group ${isSystemPaused
+                            ? 'bg-rose-950/80 border-rose-500 text-rose-400 shadow-[0_0_30px_rgba(225,29,72,0.3)]'
+                            : 'bg-slate-900 border-slate-700/50 text-emerald-400 hover:border-emerald-500/30'
+                            }`}
+                    >
+                        <div className={`w-3 h-3 rounded-full ${isSystemPaused ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`}></div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-[9px] font-black uppercase tracking-widest leading-none text-slate-500 group-hover:text-slate-400">Protocol Status</span>
+                            <span className="text-sm font-bold font-mono tracking-tighter leading-none mt-1">{isSystemPaused ? 'SUSPENDED' : 'ACTIVE'}</span>
+                        </div>
+                    </button>
+                </div>
+
+                <div className="space-y-10 flex-1 w-full relative z-10">
+                    {/* Metrics Ticker */}
+                    <div className="grid grid-cols-4 gap-6">
+                        <MetricCard
+                            label="Operational Sources"
+                            value={`${sources.filter(s => s.is_active).length}/${status?.total_sources}`}
+                            trend="STABLE"
+                        />
+                        <MetricCard
+                            label="Lifecycle Records (24h)"
+                            value={status?.records_updated_24h.toLocaleString() || '0'}
+                            trend="UP"
+                            highlight
+                        />
+                        <MetricCard
+                            label="Interruption Cycles"
+                            value={status?.errors_24h || 0}
+                            trend={(status?.errors_24h ?? 0) > 0 ? 'RISK' : 'NOMINAL'}
+                            isError={(status?.errors_24h ?? 0) > 0}
+                            onClick={() => { window.history.pushState({}, '', '/admin/command-center/quarantine'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+                        />
+                        <MetricCard
+                            label="Engine Latency"
+                            value={status?.status === 'healthy' ? '0.4ms' : 'HIGH'}
+                            trend="OPTIMAL"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-12 gap-10">
+                        {/* Ingestion Registry Searchable Grid */}
+                        <div className="col-span-12 lg:col-span-8 space-y-8">
+                            <div className="flex justify-between items-center bg-slate-900 border border-slate-700/50 p-6 rounded-lg shadow-[0_0_15px_rgba(79,70,229,0.05)]">
+                                <div className="flex flex-col">
+                                    <h3 className="text-sm font-black text-white uppercase tracking-tighter font-display">Ingestion Registry</h3>
+                                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1 font-mono">Found {filteredSources.length} Active Streams</span>
+                                </div>
+                                <div className="flex items-center gap-6">
+                                    <div className="hidden md:flex items-center gap-2 p-1 bg-slate-950/50 border border-slate-800 rounded-lg">
+                                        <button
+                                            onClick={() => setIsDryRun(true)}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded transition-all ${isDryRun ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+                                        >
+                                            TEST_MODE
+                                        </button>
+                                        <button
+                                            onClick={() => setIsDryRun(false)}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded transition-all ${!isDryRun ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+                                        >
+                                            PROD_MODE
+                                        </button>
+                                    </div>
+
+                                    <div className="relative group">
+                                        <div className="absolute -inset-0.5 bg-indigo-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                                        <input
+                                            type="text"
+                                            placeholder="Filter Registry..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="relative w-64 bg-slate-950/50 border border-slate-800 rounded px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all placeholder:text-slate-700 font-mono focus:shadow-[0_0_15px_rgba(79,70,229,0.1)]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {filteredSources.map(source => (
+                                    <SourceCard
+                                        key={source.id}
+                                        source={source}
+                                        onRun={runIngestion}
+                                        onStop={stopIngestion}
+                                        disabled={isSystemPaused}
+                                    />
+
+                                ))}
                             </div>
                         </div>
-                        <LogConsole />
 
-                        <div className="bg-slate-900/50 border border-indigo-500/20 rounded-lg p-6 relative overflow-hidden group shadow-[0_0_15px_rgba(79,70,229,0.05)]">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
-                            <div className="flex gap-4 relative z-10">
-                                <span className="text-xl text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">⚖️</span>
-                                <div>
-                                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-2">2026 Regulatory Patch</h4>
-                                    <p className="text-[10px] text-slate-400 leading-relaxed font-medium font-mono">
-                                        ICEGATE JSON Schema v1.1 validation is enforced.
-                                        <br />
-                                        <span className="text-rose-400">Non-compliant ingestion records will be automatically quarantined.</span>
-                                    </p>
+                        {/* Vertical Control Sidebar */}
+                        <div className="col-span-12 lg:col-span-4 space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest font-display">System Telemetry</h3>
+                                <div className="flex gap-1.5 items-center px-2 py-1 bg-emerald-500/10 rounded border border-emerald-500/20">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Live Link</span>
+                                </div>
+                            </div>
+                            <LogConsole />
+
+                            <div className="bg-slate-900/50 border border-indigo-500/20 rounded-lg p-6 relative overflow-hidden group shadow-[0_0_15px_rgba(79,70,229,0.05)]">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                                <div className="flex gap-4 relative z-10">
+                                    <span className="text-xl text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">⚖️</span>
+                                    <div>
+                                        <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-2">2026 Regulatory Patch</h4>
+                                        <p className="text-[10px] text-slate-400 leading-relaxed font-medium font-mono">
+                                            ICEGATE JSON Schema v1.1 validation is enforced.
+                                            <br />
+                                            <span className="text-rose-400">Non-compliant ingestion records will be automatically quarantined.</span>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className={`text-right pt-2 border-t border-slate-800/50 mt-6`}>
-                <span className="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest">
-                    ICES 1.5 ACTIVE | 2026 MANDATORY JSON V1.1 VALIDATION ACTIVE | QUARANTINE PROTOCOLS ENGAGED
-                </span>
+                <div className={`text-right pt-2 border-t border-slate-800/50 mt-6`}>
+                    <span className="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest">
+                        ICES 1.5 ACTIVE | 2026 MANDATORY JSON V1.1 VALIDATION ACTIVE | QUARANTINE PROTOCOLS ENGAGED
+                    </span>
+                </div>
             </div>
         </div>
     );
