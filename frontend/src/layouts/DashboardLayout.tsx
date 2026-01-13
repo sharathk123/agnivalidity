@@ -1,7 +1,23 @@
-import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/dashboard/Sidebar';
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const location = useLocation();
+
+    // Route config for breadcrumbs
+    const getBreadcrumbs = () => {
+        const path = location.pathname;
+        if (path.includes('/user/odop-sourcing')) return { category: 'Sourcing Terminal', page: 'ODOP Registry' };
+        if (path.includes('/user/pricing-engine')) return { category: 'Pricing Engine', page: 'Calculator' };
+        if (path.includes('/user/market-trends')) return { category: 'Market Intelligence', page: 'Global Trends' };
+        if (path.includes('/user/global-demand')) return { category: 'Market Intelligence', page: 'Demand Heatmap' };
+        if (path.includes('/admin/command-center')) return { category: 'System Control', page: 'Command Center' };
+        if (path.includes('/user/system-control')) return { category: 'System Control', page: 'Monitoring' };
+        return { category: 'Analysis', page: 'Scoring Engine' }; // Default
+    };
+
+    const breadcrumbs = getBreadcrumbs();
+
     return (
         <div className="min-h-screen bg-slate-950 font-sans flex text-slate-100">
             <Sidebar />
@@ -13,9 +29,9 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-widest font-mono">Enterprise Terminal</span>
                         <span className="text-slate-700">|</span>
                         <div className="flex items-center text-slate-500 text-[11px] font-bold uppercase tracking-tight font-mono">
-                            <span>Analysis</span>
+                            <span>{breadcrumbs.category}</span>
                             <span className="mx-2 text-slate-700">/</span>
-                            <span className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Scoring Engine</span>
+                            <span className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{breadcrumbs.page}</span>
                         </div>
                     </div>
 

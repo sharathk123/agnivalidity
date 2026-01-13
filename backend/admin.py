@@ -445,7 +445,6 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
         try:
             # Country ingestor is sync, run in thread pool if heavy, but it's fast enough or we can wrap
             # For strict async correctness:
-            import asyncio
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(None, lambda: run_country_ingestor(db, dry_run=dry_run))
             
@@ -493,7 +492,6 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
     # 3. ICEGATE Schema Simulation
     if source_name == "ICEGATE_JSON_ADVISORY":
         await log("INFO", "Running Pre-Flight Schema Check (v1.1 Target)...")
-        import asyncio
         await asyncio.sleep(2)
         
         # Simulating Drift
