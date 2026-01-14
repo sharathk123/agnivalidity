@@ -33,7 +33,7 @@ const PricingEngineWrapper = () => {
         baseCost={baseCost} setBaseCost={setBaseCost}
         logistics={logistics} setLogistics={setLogistics}
         incoterm={incoterm} setIncoterm={setIncoterm}
-        insight={{ verdict: 'GO', confidence: 0.95 }} // Mock insight context
+        insight={null} // Deprecated: Widget now fetches live
         onGenerateQuote={async () => { setIsGenerating(true); setTimeout(() => setIsGenerating(false), 2000); }}
         isGeneratingQuote={isGenerating}
       />

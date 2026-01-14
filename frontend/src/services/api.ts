@@ -15,3 +15,25 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+export interface AdvisoryMetrics {
+    base_cost: number;
+    logistics: number;
+    rodtep_benefit: number;
+    dbk_benefit: number;
+    gst_benefit: number;
+    net_cost: number;
+    total_incentives: number;
+    compliance_status: string;
+}
+
+export interface AdvisoryResponse {
+    status: string;
+    hs_code: string;
+    product_name: string;
+    verdict: "GO" | "CAUTION";
+    confidence: number;
+    metrics: AdvisoryMetrics;
+    gi_status?: string;
+    brand_lineage?: string;
+}

@@ -28,6 +28,15 @@ async def calculate_profit(hs_code: str, base_cost: float, logistics: float = 0,
     if not product and len(hs_code) >= 8:
         product = db.query(ExportProduct).filter(ExportProduct.hs_code.like(f"{hs_code[:8]}%")).first()
     
+    # Fallback for Demo (if DB is empty)
+    if not product and hs_code in ["73089090", "61091000"]:
+        class MockProduct:
+            description = "Structural Steel (DEMO)" if hs_code == "73089090" else "Cotton T-Shirts (DEMO)"
+            rodtep_rate = 0.025 if hs_code == "73089090" else 0.031
+            dbk_rate = 0.012
+            gst_refund_rate = 0.0
+        product = MockProduct()
+
     if not product:
         raise HTTPException(status_code=404, detail=f"Incentive data for HS Code {hs_code} not found in 2026 fleet.")
     

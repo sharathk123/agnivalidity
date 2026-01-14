@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Calculator, FileText, ArrowRight, Zap, ShieldCheck, BadgeCheck, Leaf } from 'lucide-react';
+import api, { type AdvisoryResponse } from '../../services/api';
 
 interface PricePredictionWidgetProps {
     baseCost: number;
@@ -29,7 +30,11 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
     const [productCategory, setProductCategory] = useState('Carbon_Intensive');
     const [cbamRate, setCbamRate] = useState(0.085); // Default fallback
 
+    // Backend Advisory Data
+    const [advisoryData, setAdvisoryData] = useState<AdvisoryResponse | null>(null);
+
     useEffect(() => {
+        // Fetch CBAM Rate
         fetch('/data/regulatory_matrix.json')
             .then(res => res.json())
             .then(data => {
@@ -40,11 +45,34 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
             .catch(err => console.error("Regulatory Matrix Stream Failed", err));
     }, []);
 
+    // Live Advisory API Call
+    useEffect(() => {
+        const fetchAdvisory = async () => {
+            try {
+                // Map category to demo HS Codes
+                const hsCode = productCategory === 'Carbon_Intensive' ? '73089090' : '61091000';
+                const res = await api.get<AdvisoryResponse>('/advisory/calculate', {
+                    params: {
+                        hs_code: hsCode,
+                        base_cost: baseCost,
+                        logistics: logistics
+                    }
+                });
+                setAdvisoryData(res.data);
+            } catch (err) {
+                console.error("Advisory Intelligence Failed", err);
+            }
+        };
+
+        const timer = setTimeout(fetchAdvisory, 600); // Debounce
+        return () => clearTimeout(timer);
+    }, [baseCost, logistics, productCategory]);
+
     const EU_ZONE = ['Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium'];
     const isEU = EU_ZONE.includes(destination);
 
-    // Derived Calculations
-    const totalIncentives = insight?.metrics?.total_incentives || (baseCost * 0.05); // Fallback mock 5%
+    // Derived Calculations using Live Data
+    const totalIncentives = advisoryData?.metrics?.total_incentives ?? (baseCost * 0.05); // Use backend or fallback
     const subtotal = baseCost + logistics;
     const netCost = subtotal - totalIncentives;
     const margin = netCost * 0.15; // 15% Margin
@@ -128,11 +156,17 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
 
                         <div className="border-t border-slate-800/50 my-4"></div>
 
-                        {/* Benefits Deduction */}
-                        <div className="flex justify-between items-center p-3 bg-emerald-500/5 rounded border border-emerald-500/10 hover:bg-emerald-500/10 transition-colors cursor-default">
+                        <div className="flex justify-between items-center p-3 bg-emerald-500/5 rounded border border-emerald-500/10 hover:bg-emerald-500/10 transition-colors cursor-default group relative">
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-display" title="Government tax-back (RoDTEP/DBK) automatically included">Govt. Incentives (RoDTEP/DBK)</span>
+                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-display">Govt. Incentives {advisoryData ? '(Live)' : '(Est.)'}</span>
+                                {advisoryData && (
+                                    <div className="absolute left-0 bottom-full mb-2 w-48 bg-slate-900 border border-emerald-500/30 p-2 rounded shadow-xl text-[9px] text-slate-300 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                                        <div className="flex justify-between"><span>RoDTEP:</span> <span className="text-emerald-400 font-bold">₹{advisoryData.metrics.rodtep_benefit}</span></div>
+                                        <div className="flex justify-between"><span>Drawback:</span> <span className="text-emerald-400 font-bold">₹{advisoryData.metrics.dbk_benefit}</span></div>
+                                        <div className="flex justify-between"><span>GST Refund:</span> <span className="text-emerald-400 font-bold">₹{advisoryData.metrics.gst_benefit}</span></div>
+                                    </div>
+                                )}
                             </div>
                             <span className="text-lg font-bold text-emerald-400 font-mono">- ₹{totalIncentives.toFixed(0)}</span>
                         </div>
