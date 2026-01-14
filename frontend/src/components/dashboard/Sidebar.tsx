@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Settings, Server, Activity, TrendingUp, DollarSign, Globe, Boxes } from 'lucide-react';
+import { Cpu, Settings, Server, Activity, TrendingUp, DollarSign, Boxes, Globe } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
     const path = window.location.pathname;
@@ -51,7 +51,7 @@ export const Sidebar: React.FC = () => {
                     active={path === '/user/global-demand'}
                     onClick={() => navigate('/user/global-demand')}
                     icon={<Globe className="w-5 h-5" />}
-                    label="Global Demand Map"
+                    label="Global Demand"
                 />
                 <NavItem
                     active={path === '/user/pricing-engine'}

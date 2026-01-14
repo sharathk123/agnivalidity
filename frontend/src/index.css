@@ -1,8 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&family=Outfit:wght@500;700;900&display=swap');
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
 body {
-  @apply bg-slate-50 text-slate-800 font-sans antialiased;
+  @apply bg-[#020617] text-slate-200 font-sans antialiased;
 }
 
 h1,
@@ -14,8 +15,16 @@ h6 {
   @apply font-display font-bold tracking-tighter;
 }
 
+.font-mono {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+.font-display {
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+}
+
 .corporate-card {
-  @apply bg-white border border-slate-200 rounded-lg p-8 shadow-none transition-all;
+  @apply bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-none transition-all;
 }
 
 .sidebar-link {
@@ -23,11 +32,11 @@ h6 {
 }
 
 .sidebar-link-active {
-  @apply bg-brand-50 text-brand-700 border border-brand-100;
+  @apply bg-indigo-500/10 text-indigo-400 border border-indigo-500/20;
 }
 
 .sidebar-link-inactive {
-  @apply text-slate-600 hover:bg-slate-100;
+  @apply text-slate-500 hover:bg-slate-800 hover:text-slate-200;
 }
 
 /* Custom transitions */
@@ -36,38 +45,28 @@ h6 {
 }
 
 @keyframes pulse-slow {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.15;
     transform: scale(0.98);
   }
-
   50% {
     opacity: 0.4;
     transform: scale(1.1);
   }
 }
 
-
-
 .animate-pulse-slow {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes glow {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.4));
   }
-
   50% {
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.7));
   }
 }
-
-
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
@@ -92,4 +91,19 @@ h6 {
 .leaflet-tooltip-top.glass-tooltip::before {
   border-top-color: rgba(255, 255, 255, 0.1) !important;
   display: none !important;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }

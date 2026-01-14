@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Globe, TrendingUp, Ship, Navigation, RefreshCw, Layers, Box, Activity } from 'lucide-react';
+import { Globe, TrendingUp, Ship, RefreshCw, Layers, Box, Activity, Award } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
+import { ftaMarkets } from '../../data/ftaData';
+import type { FTAData } from '../../data/ftaData';
+import { FTANavigator, FTASavingsOverlay } from './FTANavigator';
 
 // --- Types ---
 interface DemandOrb {
@@ -36,17 +40,48 @@ const MetricCard: React.FC<{ label: string; value: string | number; icon: React.
     </div>
 ));
 
-const ExpansionMarketCard: React.FC<{ market: ExpansionMarket; index: number }> = React.memo(({ market, index }) => (
+const ExpansionMarketCard: React.FC<{ market: ExpansionMarket; index: number; isFTA?: boolean }> = React.memo(({ market, index, isFTA }) => (
     <div
-        className="p-4 bg-slate-950/50 border border-slate-800 rounded group hover:border-indigo-500/30 transition-all animate-in fade-in slide-in-from-right-2 duration-300"
+        className={`p-4 bg-slate-950/50 border rounded group transition-all animate-in fade-in slide-in-from-right-2 duration-300 ${isFTA ? 'border-amber-500/20 hover:border-amber-500/50' : 'border-slate-800 hover:border-indigo-500/30'
+            }`}
         style={{ animationDelay: `${index * 100}ms` }}
     >
         <div className="flex justify-between items-start mb-2">
-            <span className="text-sm font-bold text-slate-200 font-display tracking-tight">{market.country}</span>
+            <div className="flex flex-col">
+                <span className="text-sm font-bold text-slate-200 font-display tracking-tight flex items-center gap-2">
+                    {market.country}
+                    {isFTA && <Award className="w-3 h-3 text-amber-500" />}
+                </span>
+                {isFTA && <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">FTA ACTIVE</span>}
+            </div>
             <span className="text-xs font-bold text-emerald-400 font-mono">+{market.growth}</span>
         </div>
         <div className="text-[10px] text-slate-500 font-mono uppercase truncate">
             Demand: {market.goods}
+        </div>
+    </div>
+));
+
+const FTAListItem: React.FC<{ market: FTAData; onClick: () => void; index: number }> = React.memo(({ market, onClick, index }) => (
+    <div
+        onClick={onClick}
+        className="p-3 bg-slate-950/30 border border-slate-800/50 hover:border-amber-500/50 hover:bg-slate-900/50 rounded cursor-pointer group transition-all duration-300 animate-in fade-in slide-in-from-right-2"
+        style={{ animationDelay: `${index * 100}ms` }}
+    >
+        <div className="flex justify-between items-center mb-1">
+            <span className="text-sm font-bold text-slate-300 group-hover:text-amber-400 transition-colors font-display flex items-center gap-2">
+                {market.country}
+                <Award className="w-3 h-3 text-amber-500/50 group-hover:text-amber-500 transition-colors" />
+            </span>
+            <span className="text-[9px] font-black text-amber-500/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 truncate max-w-[120px]">
+                {market.agreementName}
+            </span>
+        </div>
+        <div className="flex justify-between items-center">
+            <span className="text-[10px] text-slate-500 font-mono uppercase">
+                Duty: <span className="text-emerald-400">{market.dutyRate}%</span> <span className="text-slate-600">vs</span> <span className="text-red-400/70 line-through decoration-red-500/50">{market.standardRate}%</span>
+            </span>
+            <span className="text-[9px] font-black text-emerald-500/80 uppercase tracking-wider">SAVINGS ACTIVE</span>
         </div>
     </div>
 ));
@@ -99,6 +134,7 @@ export const GlobalDemandHeatmap: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [lastSync, setLastSync] = useState<string>('00:00:00');
     const [hoveredOrb, setHoveredOrb] = useState<number | null>(null);
+    const [focusedFTA, setFocusedFTA] = useState<FTAData | null>(null);
 
     const metrics = useMemo(() => {
         const uniqueProducts = new Set(orbs.map(o => o.product).filter(Boolean));
@@ -144,7 +180,7 @@ export const GlobalDemandHeatmap: React.FC = () => {
                             <div className="p-2 bg-indigo-500/10 rounded border border-indigo-500/20">
                                 <Globe className="w-5 h-5 text-indigo-400" />
                             </div>
-                            <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Global Demand</h3>
+                            <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Agni Intelligence</h3>
                         </div>
                         <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest pl-1">
                             {loading ? "Establishing Uplink..." : `Last Sync: ${lastSync}`}
@@ -160,27 +196,82 @@ export const GlobalDemandHeatmap: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                    <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                        <TrendingUp className="w-3 h-3" />
-                        Top 5 Expansion Markets (2026)
-                    </div>
+                <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
+                    <AnimatePresence mode="wait">
+                        {focusedFTA ? (
+                            <motion.div
+                                key="fta-nav"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                            >
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="text-[10px] font-black text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Award className="w-3 h-3" />
+                                        FTA Optimizer Active
+                                    </div>
+                                    <button
+                                        onClick={() => setFocusedFTA(null)}
+                                        className="text-[9px] text-slate-500 hover:text-white uppercase font-bold"
+                                    > Close </button>
+                                </div>
+                                <FTANavigator activeMarket={focusedFTA} />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="market-list"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="space-y-4"
+                            >
+                                <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <TrendingUp className="w-3 h-3" />
+                                    Top 5 Expansion Markets (2026)
+                                </div>
 
-                    {markets.map((market, idx) => (
-                        <ExpansionMarketCard key={market.country} market={market} index={idx} />
-                    ))}
+                                {markets.map((market, idx) => {
+                                    const isFTA = ftaMarkets.some(f => f.country.toLowerCase() === market.country.toLowerCase());
+                                    return (
+                                        <div key={market.country} onClick={() => {
+                                            const fta = ftaMarkets.find(f => f.country.toLowerCase() === market.country.toLowerCase());
+                                            if (fta) setFocusedFTA(fta);
+                                        }} className="cursor-pointer">
+                                            <ExpansionMarketCard market={market} index={idx} isFTA={isFTA} />
+                                        </div>
+                                    );
+                                })}
 
-                    {markets.length === 0 && !loading && (
-                        <div className="text-[10px] text-slate-500 font-mono text-center py-4 border border-dashed border-slate-800 rounded">
-                            NO UPWARD TRENDS DETECTED
-                        </div>
-                    )}
+                                {markets.length === 0 && !loading && (
+                                    <div className="text-[10px] text-slate-500 font-mono text-center py-4 border border-dashed border-slate-800 rounded">
+                                        NO UPWARD TRENDS DETECTED
+                                    </div>
+                                )}
+
+                                <div className="pt-6 pb-2 border-t border-slate-800/50">
+                                    <div className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Award className="w-3 h-3" />
+                                        Strategic FTA Partners
+                                    </div>
+                                    <div className="space-y-3">
+                                        {ftaMarkets.map((market, idx) => (
+                                            <FTAListItem
+                                                key={market.country}
+                                                market={market}
+                                                index={idx}
+                                                onClick={() => setFocusedFTA(market)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 <div className="mt-auto pt-6 border-t border-slate-800/50">
                     <div className="flex items-center gap-3 text-indigo-400 animate-pulse">
                         <Ship className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-[10px] font-black uppercase tracking-widest font-mono">
                             {loading ? "SCANNING SHIPMENTS..." : "AIS VESSEL STREAM ACTIVE"}
                         </span>
                     </div>
@@ -189,9 +280,10 @@ export const GlobalDemandHeatmap: React.FC = () => {
 
             {/* Map Engine (75%) */}
             <div className="w-3/4 relative z-0 bg-slate-950">
-                <MapContainer center={[20, 0]} zoom={2} style={{ height: '100%', width: '100%', background: '#020617' }} zoomControl={false} attributionControl={false}>
+                <MapContainer center={[20, 0]} zoom={2.5} style={{ height: '100%', width: '100%', background: '#020617' }} zoomControl={false} attributionControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
 
+                    {/* Standard Demand Orbs */}
                     {orbs.map(orb => (
                         <React.Fragment key={orb.id}>
                             <CircleMarker
@@ -203,10 +295,10 @@ export const GlobalDemandHeatmap: React.FC = () => {
                                 pathOptions={{
                                     color: 'transparent',
                                     fillColor: '#10b981',
-                                    fillOpacity: 1,
+                                    fillOpacity: 0.8,
                                     weight: 0,
                                 }}
-                                radius={9}
+                                radius={7}
                                 className="animate-glow cursor-pointer"
                             >
                                 <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={hoveredOrb === orb.id} className="glass-tooltip">
@@ -214,6 +306,29 @@ export const GlobalDemandHeatmap: React.FC = () => {
                                 </Tooltip>
                             </CircleMarker>
                         </React.Fragment>
+                    ))}
+
+                    {/* FTA Special Markers */}
+                    {ftaMarkets.map(market => (
+                        <CircleMarker
+                            key={`fta-${market.country}`}
+                            center={[market.lat, market.lng]}
+                            eventHandlers={{
+                                click: () => setFocusedFTA(market),
+                            }}
+                            pathOptions={{
+                                color: 'transparent',
+                                fillColor: '#fbbf24', // Gold-400
+                                fillOpacity: 1,
+                                weight: 0,
+                            }}
+                            radius={7}
+                            className="animate-pulse cursor-pointer"
+                        >
+                            <Tooltip direction="top" offset={[0, -10]} opacity={1} className="glass-tooltip" sticky>
+                                <FTASavingsOverlay market={market} />
+                            </Tooltip>
+                        </CircleMarker>
                     ))}
                 </MapContainer>
 
@@ -228,12 +343,12 @@ export const GlobalDemandHeatmap: React.FC = () => {
 
                 {/* Status Overlay */}
                 <div className="absolute bottom-6 right-6 z-[1000] pointer-events-none flex flex-col items-end gap-1">
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-500/80 bg-slate-950/80 px-2 py-1 rounded backdrop-blur">
-                        <Navigation className="w-3 h-3" />
-                        <span>COORDINATES LOCK: ENABLED</span>
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-amber-500/80 bg-slate-950/80 px-2 py-1 rounded backdrop-blur border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+                        <Award className="w-3 h-3 animate-spin duration-3000" />
+                        <span>FTA ADVANTAGE MODE: ACTIVE</span>
                     </div>
                     <div className="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest bg-slate-950/50 px-2 py-1 rounded backdrop-blur">
-                        SYSTEM_ID: AGNI-01
+                        BUILD_VERSION: 2.0.26_HUD
                     </div>
                 </div>
             </div>

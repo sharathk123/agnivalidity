@@ -32,13 +32,16 @@ interface OdopRecord {
     lng: number;
 }
 
+// Global cache to prevent re-fetching/re-parsing 9.4MB JSON on every mount
+let cachedIndiaData: any = null;
+
 export const ODOPSourcingTerminal: React.FC = () => {
     const navigate = useNavigate();
     const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
 
-
     const [registry, setRegistry] = useState<Record<string, OdopRecord>>({});
+    const [geoData, setGeoData] = useState<any>(cachedIndiaData);
     const [loading, setLoading] = useState(true);
 
     // Fetch ODOP Data from Backend
@@ -53,9 +56,32 @@ export const ODOPSourcingTerminal: React.FC = () => {
         } catch (error) {
             console.error("Failed to fetch ODOP registry:", error);
         } finally {
-            setLoading(false);
+            if (cachedIndiaData) setLoading(false);
         }
     };
+
+    // Load GeoData with caching
+    useEffect(() => {
+        const loadGeoData = async () => {
+            if (cachedIndiaData) {
+                setGeoData(cachedIndiaData);
+                return;
+            }
+
+            try {
+                const response = await fetch(INDIA_TOPO_JSON);
+                const data = await response.json();
+                cachedIndiaData = data;
+                setGeoData(data);
+            } catch (err) {
+                console.error("Failed to load map data:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadGeoData();
+    }, []);
 
     // Metrics Calculation
     const metrics = useMemo(() => {
@@ -74,7 +100,6 @@ export const ODOPSourcingTerminal: React.FC = () => {
         const interval = setInterval(fetchRegistry, 60000);
         return () => clearInterval(interval);
     }, []);
-
 
     const activeDistrictName = selectedDistrict || hoveredDistrict;
     const activeData = activeDistrictName ? registry[activeDistrictName] : null;
@@ -96,8 +121,6 @@ export const ODOPSourcingTerminal: React.FC = () => {
 
         navigate(`/user/pricing-engine?${params.toString()}`);
     };
-
-
 
     return (
         <div className="bg-slate-950/90 border border-slate-700/50 rounded-lg h-full flex overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)] relative select-none">
@@ -126,106 +149,114 @@ export const ODOPSourcingTerminal: React.FC = () => {
                         </button>
                     </div>
 
+                    {!geoData ? (
+                        <div className="w-full h-full flex items-center justify-center bg-slate-950/20">
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="w-12 h-12 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Generating Sourcing Hubs...</span>
+                            </div>
+                        </div>
+                    ) : (
+                        <ComposableMap
+                            projection="geoMercator"
+                            projectionConfig={{
+                                scale: 1100,
+                                center: [82, 23] // Center of India
+                            }}
+                            className="w-full h-full"
+                            style={{ background: 'transparent' }}
+                        >
+                            <ZoomableGroup center={[82, 23]} zoom={1} minZoom={0.5} maxZoom={4}>
+                                <Geographies geography={geoData}>
+                                    {({ geographies }) =>
+                                        geographies.map((geo) => {
+                                            // TopoJSON property for district name.
+                                            // geoBoundaries (ADM2) uses 'shapeName' 
+                                            const districtName = geo.properties.shapeName || geo.properties.district || geo.properties.dtname || geo.properties.NAME_2;
+                                            const hasData = registry[districtName];
+                                            // const isHovered = hoveredDistrict === districtName; 
+                                            // const isSelected = selectedDistrict === districtName; 
 
-                    <ComposableMap
-                        projection="geoMercator"
-                        projectionConfig={{
-                            scale: 1100,
-                            center: [82, 23] // Center of India
-                        }}
-                        className="w-full h-full"
-                        style={{ background: 'transparent' }}
-                    >
-                        <ZoomableGroup center={[82, 23]} zoom={1} minZoom={0.5} maxZoom={4}>
-                            <Geographies geography={INDIA_TOPO_JSON}>
-                                {({ geographies }) =>
-                                    geographies.map((geo) => {
-                                        // TopoJSON property for district name.
-                                        // geoBoundaries (ADM2) uses 'shapeName' 
-                                        const districtName = geo.properties.shapeName || geo.properties.district || geo.properties.dtname || geo.properties.NAME_2;
-                                        const hasData = registry[districtName];
-                                        // const isHovered = hoveredDistrict === districtName; 
-                                        // const isSelected = selectedDistrict === districtName; 
+                                            return (
+                                                <Geography
+                                                    key={geo.rsmKey}
+                                                    geography={geo}
+                                                    onMouseEnter={() => setHoveredDistrict(districtName)}
+                                                    onMouseLeave={() => setHoveredDistrict(null)}
+                                                    onClick={() => setSelectedDistrict(districtName === selectedDistrict ? null : districtName)}
+                                                    style={{
+                                                        default: {
+                                                            fill: hasData ? (hasData.gi ? '#065f46' : '#92400e') : '#0f172a', // More vibrant Green/Amber for hubs
+                                                            stroke: hasData ? (hasData.gi ? '#10b981' : '#f59e0b') : '#334155',
+                                                            strokeWidth: hasData ? 2 : 0.5,
+                                                            outline: 'none',
+                                                            transition: 'all 0.3s ease'
+                                                        },
+                                                        hover: {
+                                                            fill: hasData ? (hasData.gi ? '#067a5a' : '#b45309') : '#1e293b',
+                                                            stroke: '#ffffff',
+                                                            strokeWidth: 1.5,
+                                                            outline: 'none',
+                                                            cursor: hasData ? 'pointer' : 'default'
+                                                        },
+                                                        pressed: {
+                                                            fill: '#1e1b4b',
+                                                            stroke: '#6366f1',
+                                                            outline: 'none'
+                                                        }
+                                                    }}
 
-                                        return (
-                                            <Geography
-                                                key={geo.rsmKey}
-                                                geography={geo}
-                                                onMouseEnter={() => setHoveredDistrict(districtName)}
-                                                onMouseLeave={() => setHoveredDistrict(null)}
-                                                onClick={() => setSelectedDistrict(districtName === selectedDistrict ? null : districtName)}
-                                                style={{
-                                                    default: {
-                                                        fill: hasData ? (hasData.gi ? '#065f46' : '#92400e') : '#0f172a', // More vibrant Green/Amber for hubs
-                                                        stroke: hasData ? (hasData.gi ? '#10b981' : '#f59e0b') : '#334155',
-                                                        strokeWidth: hasData ? 2 : 0.5,
-                                                        outline: 'none',
-                                                        transition: 'all 0.3s ease'
-                                                    },
-                                                    hover: {
-                                                        fill: hasData ? (hasData.gi ? '#067a5a' : '#b45309') : '#1e293b',
-                                                        stroke: '#ffffff',
-                                                        strokeWidth: 1.5,
-                                                        outline: 'none',
-                                                        cursor: hasData ? 'pointer' : 'default'
-                                                    },
-                                                    pressed: {
-                                                        fill: '#1e1b4b',
-                                                        stroke: '#6366f1',
-                                                        outline: 'none'
-                                                    }
-                                                }}
+                                                />
+                                            );
+                                        })
+                                    }
+                                </Geographies>
 
-                                            />
-                                        );
-                                    })
-                                }
-                            </Geographies>
-
-                            {/* Dynamic Markers for ODOP Hubs */}
-                            {Object.values(registry).map((d) => (
-                                <Marker
-                                    key={d.id}
-                                    coordinates={[d.lng, d.lat]}
-                                    onMouseEnter={() => setHoveredDistrict(d.name)}
-                                    onMouseLeave={() => setHoveredDistrict(null)}
-                                    // @ts-ignore
-                                    onClick={() => setSelectedDistrict(d.name === selectedDistrict ? null : d.name)}
-                                >
-                                    {/* Constant Pulse for all Hubs */}
-                                    <circle
-                                        r={10}
-                                        fill={d.gi ? "#10b981" : "#f59e0b"}
-                                        opacity={0.3}
-                                        className="animate-pulse-slow"
-                                    />
-
-                                    {/* Main Hub Node */}
-                                    <circle
-                                        r={4.5}
-                                        fill={d.gi ? "#10b981" : "#f59e0b"}
-                                        stroke="#ffffff"
-                                        strokeWidth={1.5}
-                                        className="cursor-pointer transition-transform hover:scale-150 active:scale-95 animate-glow"
-                                    />
-
-
-                                    {/* Interactive Echo */}
-                                    {hoveredDistrict === d.name && (
+                                {/* Dynamic Markers for ODOP Hubs */}
+                                {Object.values(registry).map((d) => (
+                                    <Marker
+                                        key={d.id}
+                                        coordinates={[d.lng, d.lat]}
+                                        onMouseEnter={() => setHoveredDistrict(d.name)}
+                                        onMouseLeave={() => setHoveredDistrict(null)}
+                                        // @ts-ignore
+                                        onClick={() => setSelectedDistrict(d.name === selectedDistrict ? null : d.name)}
+                                    >
+                                        {/* Constant Pulse for all Hubs */}
                                         <circle
-                                            r={15}
-                                            fill="none"
-                                            stroke={d.gi ? "#10b981" : "#f59e0b"}
-                                            strokeWidth={1.5}
-                                            className="animate-ping"
+                                            r={10}
+                                            fill={d.gi ? "#10b981" : "#f59e0b"}
+                                            opacity={0.3}
+                                            className="animate-pulse-slow"
                                         />
-                                    )}
-                                </Marker>
-                            ))}
+
+                                        {/* Main Hub Node */}
+                                        <circle
+                                            r={4.5}
+                                            fill={d.gi ? "#10b981" : "#f59e0b"}
+                                            stroke="#ffffff"
+                                            strokeWidth={1.5}
+                                            className="cursor-pointer transition-transform hover:scale-150 active:scale-95 animate-glow"
+                                        />
 
 
-                        </ZoomableGroup>
-                    </ComposableMap>
+                                        {/* Interactive Echo */}
+                                        {hoveredDistrict === d.name && (
+                                            <circle
+                                                r={15}
+                                                fill="none"
+                                                stroke={d.gi ? "#10b981" : "#f59e0b"}
+                                                strokeWidth={1.5}
+                                                className="animate-ping"
+                                            />
+                                        )}
+                                    </Marker>
+                                ))}
+
+
+                            </ZoomableGroup>
+                        </ComposableMap>
+                    )}
 
                     {/* 📊 Metrics HUD Overlay - Compact Version */}
                     {!loading && metrics.totalHubs > 0 && (
