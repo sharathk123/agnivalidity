@@ -1,19 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-export const LogConsole: React.FC = () => {
-    const [logs, setLogs] = useState<any[]>([]);
+interface LogConsoleProps {
+    logs: any[];
+}
+
+export const LogConsole: React.FC<LogConsoleProps> = ({ logs }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const eventSource = new EventSource('http://localhost:8000/admin/ingestion/stream');
-
-        eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            setLogs(prev => [...prev.slice(-49), data]);
-        };
-
-        return () => eventSource.close();
-    }, []);
+    /* Removed internal EventSource logic to allow parent control */
 
     useEffect(() => {
         if (scrollRef.current) {

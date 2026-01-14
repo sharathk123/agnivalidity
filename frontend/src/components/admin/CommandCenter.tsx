@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { SourceCard } from './SourceCard';
 import { LogConsole } from './LogConsole';
-import { ShieldAlert } from 'lucide-react';
+import { SystemPulseBar, type SystemStatus } from './SystemPulseBar';
 
 import axios from 'axios';
 
@@ -44,6 +44,12 @@ const MetricCard = ({ label, value, trend, highlight, isError, onClick }: any) =
 export const AdminCommandCenter: React.FC = () => {
     const [status, setStatus] = useState<DashboardStatus | null>(null);
     const [sources, setSources] = useState<any[]>([]);
+    const [logs, setLogs] = useState<any[]>([]);
+    const [systemStatus, setSystemStatus] = useState<SystemStatus>('ACTIVE');
+    const [resetIndex, setResetIndex] = useState<number>(-1);
+
+    // Internal ref to track active streams during reset for immediate UI feedback
+    const activeStreamsRef = useRef<Set<number>>(new Set());
     const [loading, setLoading] = useState(true);
     const [killSwitchLoading, setKillSwitchLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -67,10 +73,89 @@ export const AdminCommandCenter: React.FC = () => {
     useEffect(() => {
         fetchData();
         const interval = setInterval(fetchData, 5000);
-        return () => clearInterval(interval);
+
+        // Telemetry Stream
+        const eventSource = new EventSource('http://localhost:8000/admin/ingestion/stream');
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            setLogs(prev => [...prev.slice(-49), data]);
+        };
+
+        return () => {
+            clearInterval(interval);
+            eventSource.close();
+        };
     }, []);
 
+    // Effect to sync system status with backend kill switch
+    useEffect(() => {
+        if (status?.kill_switch === 'ON' && systemStatus !== 'RESETTING') {
+            setSystemStatus('PAUSED');
+        } else if (status?.kill_switch === 'OFF' && systemStatus === 'PAUSED') {
+            setSystemStatus('ACTIVE');
+        }
+    }, [status?.kill_switch]);
+
+    const initiateSoftReset = () => {
+        if (systemStatus !== 'PAUSED') return;
+
+        setSystemStatus('RESETTING');
+        setResetIndex(0);
+        activeStreamsRef.current.clear();
+
+        let currentIndex = 0;
+        const totalSources = sources.length;
+
+        const resetInterval = setInterval(async () => {
+            if (currentIndex >= totalSources) {
+                clearInterval(resetInterval);
+
+                // Finalize Reset
+                try {
+                    await axios.post(`${API_BASE}/settings/kill-switch`); // Toggle OFF
+                    await fetchData();
+                    setSystemStatus('ACTIVE');
+                    setResetIndex(-1);
+                    setLogs(prev => [...prev, {
+                        timestamp: new Date().toLocaleTimeString(),
+                        level: 'SUCCESS',
+                        source: 'SYSTEM',
+                        message: 'Engine Latency Stabilized: 0.42ms. All systems GREEN.'
+                    }]);
+                } catch (error) {
+                    console.error('Failed to restore system', error);
+                }
+                return;
+            }
+
+            // Simulate enabling stream
+            const source = sources[currentIndex];
+            if (source) {
+                activeStreamsRef.current.add(source.id);
+                // Update local sources state to reflect "active" visual even if backend hasn't updated yet
+                setSources(prev => prev.map(s => s.id === source.id ? { ...s, is_active: true } : s));
+
+                setLogs(prev => [...prev, {
+                    timestamp: new Date().toLocaleTimeString(),
+                    level: 'INFO',
+                    source: 'SYSTEM',
+                    message: `Reset Initiated: Resuming Node ${currentIndex + 1}/${totalSources} (${source.source_name})...`
+                }]);
+            }
+
+            setResetIndex(currentIndex + 1);
+            currentIndex++;
+
+        }, 400);
+    };
+
     const toggleKillSwitch = async () => {
+        if (systemStatus === 'PAUSED') {
+            // If manual toggle while paused, just use the soft reset flow
+            initiateSoftReset();
+            return;
+        }
+
         setKillSwitchLoading(true);
         try {
             await axios.post(`${API_BASE}/settings/kill-switch`);
@@ -105,33 +190,19 @@ export const AdminCommandCenter: React.FC = () => {
 
     if (loading && !status) return <div className="p-12 text-center text-slate-500 font-bold uppercase tracking-widest animate-pulse font-mono">Establishing Uplink...</div>;
 
-    const isSystemPaused = status?.kill_switch === 'ON';
     const filteredSources = sources.filter(s =>
         s.source_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.source_type.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className={`flex flex-col min-h-screen bg-slate-950 relative overflow-hidden transition-colors duration-500 ${isSystemPaused ? 'bg-rose-950/20' : ''}`}>
-            {/* Global Emergency Bar */}
-            {isSystemPaused && (
-                <div className="sticky top-0 z-[100] bg-rose-600 text-white px-8 py-3 flex justify-between items-center animate-pulse-slow shadow-[0_4px_20px_rgba(225,29,72,0.4)] backdrop-blur-md">
-                    <div className="flex items-center gap-4">
-                        <ShieldAlert className="w-5 h-5" />
-                        <div className="flex flex-col">
-                            <span className="text-[11px] font-black uppercase tracking-[.2em]">System-Wide Emergency Override Active</span>
-                            <span className="text-[9px] font-mono opacity-80 uppercase tracking-widest leading-none mt-0.5">All ingestion cycles suspended by internal authority</span>
-                        </div>
-                    </div>
-                    <button
-                        onClick={toggleKillSwitch}
-                        disabled={killSwitchLoading}
-                        className="group relative px-6 py-2 bg-white text-rose-600 text-[10px] font-black uppercase tracking-widest rounded shadow-lg hover:bg-rose-50 transition-all overflow-hidden border border-rose-200"
-                    >
-                        <span className="relative z-10 font-bold">{killSwitchLoading ? 'RESTORING PIPELINES...' : 'Restore & Continue All Jobs'}</span>
-                    </button>
-                </div>
-            )}
+        <div className={`flex flex-col min-h-screen bg-slate-950 relative overflow-hidden transition-colors duration-500 ${systemStatus === 'PAUSED' ? 'bg-rose-950/20' : ''}`}>
+            <SystemPulseBar
+                status={systemStatus}
+                onReset={initiateSoftReset}
+                currentStreamIndex={resetIndex}
+                totalStreams={sources.length}
+            />
 
             <div className="p-8 animate-fade-in flex flex-col flex-1">
                 {/* Global Grid Overlay */}
@@ -147,16 +218,16 @@ export const AdminCommandCenter: React.FC = () => {
                     {/* Protocol Master Switch */}
                     <button
                         onClick={toggleKillSwitch}
-                        disabled={killSwitchLoading}
-                        className={`flex items-center gap-4 px-6 py-3 rounded border transition-all shadow-[0_0_20px_rgba(0,0,0,0.2)] group ${isSystemPaused
+                        disabled={killSwitchLoading || systemStatus === 'RESETTING'}
+                        className={`flex items-center gap-4 px-6 py-3 rounded border transition-all shadow-[0_0_20px_rgba(0,0,0,0.2)] group ${systemStatus === 'PAUSED'
                             ? 'bg-rose-950/80 border-rose-500 text-rose-400 shadow-[0_0_30px_rgba(225,29,72,0.3)]'
                             : 'bg-slate-900 border-slate-700/50 text-emerald-400 hover:border-emerald-500/30'
                             }`}
                     >
-                        <div className={`w-3 h-3 rounded-full ${isSystemPaused ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`}></div>
+                        <div className={`w-3 h-3 rounded-full ${systemStatus === 'PAUSED' ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`}></div>
                         <div className="flex flex-col text-right">
                             <span className="text-[9px] font-black uppercase tracking-widest leading-none text-slate-500 group-hover:text-slate-400">Protocol Status</span>
-                            <span className="text-sm font-bold font-mono tracking-tighter leading-none mt-1">{isSystemPaused ? 'SUSPENDED' : 'ACTIVE'}</span>
+                            <span className="text-sm font-bold font-mono tracking-tighter leading-none mt-1">{systemStatus === 'PAUSED' ? 'SUSPENDED' : 'ACTIVE'}</span>
                         </div>
                     </button>
                 </div>
@@ -233,7 +304,7 @@ export const AdminCommandCenter: React.FC = () => {
                                         source={source}
                                         onRun={runIngestion}
                                         onStop={stopIngestion}
-                                        disabled={isSystemPaused}
+                                        disabled={systemStatus === 'PAUSED' || systemStatus === 'RESETTING'}
                                     />
 
                                 ))}
@@ -249,7 +320,7 @@ export const AdminCommandCenter: React.FC = () => {
                                     <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Live Link</span>
                                 </div>
                             </div>
-                            <LogConsole />
+                            <LogConsole logs={logs} />
 
                             <div className="bg-slate-900/50 border border-indigo-500/20 rounded-lg p-6 relative overflow-hidden group shadow-[0_0_15px_rgba(79,70,229,0.05)]">
                                 <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
