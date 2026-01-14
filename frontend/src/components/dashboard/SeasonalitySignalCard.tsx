@@ -1,5 +1,5 @@
 import React from 'react';
-import { CloudRain, Sun, Ship } from 'lucide-react';
+import { CloudRain, Sun, Ship, Activity } from 'lucide-react';
 
 const mockMonthlyData = [85, 88, 92, 98, 110, 115, 108, 95, 90, 88, 86, 84]; // Price Index
 
@@ -23,10 +23,14 @@ export const SeasonalitySignalCard: React.FC = () => {
     let phaseIcon = <CloudRain className="w-4 h-4 text-emerald-400" />;
     let phaseColor = 'text-emerald-400';
 
-    if (currentMonthIndex >= 3 && currentMonthIndex <= 5) {
-        phase = 'PEAK EXPORT';
-        phaseIcon = <Ship className="w-4 h-4 text-indigo-400" />;
+    if (currentMonthIndex >= 0 && currentMonthIndex <= 2) {
+        phase = 'PEAK TRADING'; // Jan-Mar (Post Harvest)
+        phaseIcon = <Activity className="w-4 h-4 text-indigo-400" />;
         phaseColor = 'text-indigo-400';
+    } else if (currentMonthIndex >= 3 && currentMonthIndex <= 5) {
+        phase = 'PEAK EXPORT';
+        phaseIcon = <Ship className="w-4 h-4 text-emerald-400" />;
+        phaseColor = 'text-emerald-400';
     } else if (currentMonthIndex >= 9) {
         phase = 'HARVEST';
         phaseIcon = <Sun className="w-4 h-4 text-amber-400" />;
@@ -34,7 +38,7 @@ export const SeasonalitySignalCard: React.FC = () => {
     }
 
     return (
-        <div className="absolute top-4 right-4 z-20 w-80 bg-slate-900/60 backdrop-blur-md border border-slate-700/50 rounded-lg p-4 shadow-[0_0_20px_rgba(0,0,0,0.3)] animate-slide-in-right">
+        <div className="relative w-full bg-slate-900/60 backdrop-blur-md border-b border-slate-800/50 p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-3">
                 <h4 className="text-[10px] font-bold text-slate-300 tracking-tighter font-display">SEASONALITY SIGNAL</h4>
                 <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded border bg-slate-950/50 border-slate-700/50 ${phaseColor}`}>
@@ -45,7 +49,7 @@ export const SeasonalitySignalCard: React.FC = () => {
 
             <div className="relative h-[80px] w-full mb-2">
                 {/* Sine Wave */}
-                <svg width="100%" height="100%" viewBox="0 0 300 60" overflow="visible">
+                <svg width="100%" height="100%" viewBox="0 0 300 60" overflow="visible" preserveAspectRatio="none">
                     <defs>
                         <linearGradient id="seasonGradient" x1="0" y1="0" x2="1" y2="0">
                             <stop offset="0%" stopColor="#10b981" stopOpacity="0.5" />

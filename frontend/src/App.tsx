@@ -1,23 +1,19 @@
 import { useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { AdminCommandCenter } from './components/admin/CommandCenter';
-import { AdminControl } from './components/admin/AdminControl';
-import { QuarantineTerminal } from './components/admin/QuarantineTerminal';
+// import { AdminCommandCenter } from './components/admin/CommandCenter';
+// import { AdminControl } from './components/admin/AdminControl';
+// import { QuarantineTerminal } from './components/admin/QuarantineTerminal';
 import { IntelligenceDashboard } from './components/dashboard/IntelligenceDashboard';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import LandingPage from './components/landing/LandingPage';
-import { MarketTrends } from './components/dashboard/MarketTrends';
+import { MarketIntelligence } from './components/dashboard/MarketIntelligence';
 import { PricePredictionWidget } from './components/dashboard/PricePredictionWidget';
 import { GlobalDemandHeatmap } from './components/dashboard/GlobalDemandHeatmap';
 import { ODOPSourcingTerminal } from './components/dashboard/ODOPSourcingTerminal';
 
 // Wrappers for focused views
-const MarketTrendsWrapper = () => (
-  <div className="max-w-[1920px] mx-auto h-full w-full">
-    <h2 className="text-3xl font-black font-display text-white tracking-tighter uppercase mb-6">Global Market Pulse</h2>
-    <MarketTrends />
-  </div>
-);
+// Wrappers for focused views
+// const MarketTrendsWrapper = () => ( ... ) - DEPRECATED
 
 const PricingEngineWrapper = () => {
   // Mock props for standalone display
@@ -57,13 +53,11 @@ function App() {
   return (
     <DashboardLayout>
       <Routes>
-        <Route path="/user/system-control" element={<AdminControl />} />
-        <Route path="/admin/command-center" element={<AdminCommandCenter />} />
-        <Route path="/admin/command-center/quarantine" element={<QuarantineTerminal />} />
+        <Route path="/user/market-intelligence" element={<MarketIntelligence />} />
 
-        <Route path="/user/market-trends" element={
-          <div className="p-8 h-screen animate-fade-in"><MarketTrendsWrapper /></div>
-        } />
+        {/* Deprecated/Hidden Routes */}
+        {/* <Route path="/user/system-control" element={<AdminControl />} /> */}
+        {/* <Route path="/user/market-trends" element={<MarketTrendsWrapper />} /> */}
 
         <Route path="/user/global-demand" element={
           <div className="p-8 h-screen animate-fade-in w-full"><GlobalDemandHeatmap /></div>
