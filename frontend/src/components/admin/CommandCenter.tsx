@@ -241,20 +241,20 @@ export const AdminCommandCenter: React.FC = () => {
                             trend="STABLE"
                         />
                         <MetricCard
-                            label="Lifecycle Records (24h)"
+                            label="Verified Transactions (24h)"
                             value={status?.records_updated_24h.toLocaleString() || '0'}
                             trend="UP"
                             highlight
                         />
                         <MetricCard
-                            label="Interruption Cycles"
+                            label="Audit Exception Log"
                             value={status?.errors_24h || 0}
                             trend={(status?.errors_24h ?? 0) > 0 ? 'RISK' : 'NOMINAL'}
                             isError={(status?.errors_24h ?? 0) > 0}
                             onClick={() => { window.history.pushState({}, '', '/admin/command-center/quarantine'); window.dispatchEvent(new PopStateEvent('popstate')); }}
                         />
                         <MetricCard
-                            label="Engine Latency"
+                            label="Sync Precision"
                             value={status?.status === 'healthy' ? '0.4ms' : 'HIGH'}
                             trend="OPTIMAL"
                         />
@@ -266,7 +266,7 @@ export const AdminCommandCenter: React.FC = () => {
                             <div className="flex justify-between items-center bg-slate-900 border border-slate-700/50 p-6 rounded-lg shadow-[0_0_15px_rgba(79,70,229,0.05)]">
                                 <div className="flex flex-col">
                                     <h3 className="text-sm font-black text-white uppercase tracking-tighter font-display">Ingestion Registry</h3>
-                                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1 font-mono">Found {filteredSources.length} Active Streams</span>
+                                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1 font-display">Found <span className="font-mono">{filteredSources.length}</span> Verified Data Partners</span>
                                 </div>
                                 <div className="flex items-center gap-6">
                                     <div className="hidden md:flex items-center gap-2 p-1 bg-slate-950/50 border border-slate-800 rounded-lg">

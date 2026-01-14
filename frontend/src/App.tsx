@@ -28,7 +28,7 @@ const PricingEngineWrapper = () => {
 
   return (
     <div className="max-w-4xl w-full">
-      <h2 className="text-3xl font-black font-display text-white tracking-tighter uppercase mb-6 text-center">Predictive Pricing Engine</h2>
+      <h2 className="text-3xl font-black font-display text-white tracking-tighter uppercase mb-6 text-center">Smart Quote Architect</h2>
       <PricePredictionWidget
         baseCost={baseCost} setBaseCost={setBaseCost}
         logistics={logistics} setLogistics={setLogistics}

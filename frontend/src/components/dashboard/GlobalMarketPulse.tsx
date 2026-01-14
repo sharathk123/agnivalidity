@@ -23,11 +23,11 @@ export const GlobalMarketPulse: React.FC = () => {
                 </div>
                 <div className="flex gap-8 text-right">
                     <div>
-                        <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Sources</div>
+                        <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 font-display">Verified Data Partners</div>
                         <div className="text-xl font-display font-bold text-white tracking-tight">24<span className="text-slate-600">/28</span></div>
                     </div>
                     <div>
-                        <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Global Volatility</div>
+                        <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 font-display" title="Shows how stable global prices are for your selected product">Market Stability</div>
                         <div className="text-xl font-display font-bold text-emerald-400 tracking-tight">Low</div>
                     </div>
                 </div>

@@ -22,7 +22,7 @@ export const Sidebar: React.FC = () => {
             </div>
 
             <nav className="flex-1 p-4 space-y-1">
-                <div className="pb-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-4 font-display">Mission Terminal</div>
+                <div className="pb-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-4 font-display">Strategic Operations</div>
                 <NavItem
                     active={path === '/user/intelligence' || path === '/dashboard' || path === '/'}
                     onClick={() => navigate('/user/intelligence')}
@@ -33,7 +33,7 @@ export const Sidebar: React.FC = () => {
                     active={path === '/user/system-control'}
                     onClick={() => navigate('/user/system-control')}
                     icon={<Server className="w-5 h-5" />}
-                    label="System Control"
+                    label="Market Watchtower"
                 />
                 <NavItem
                     active={path === '/user/market-trends'}
@@ -57,10 +57,10 @@ export const Sidebar: React.FC = () => {
                     active={path === '/user/pricing-engine'}
                     onClick={() => navigate('/user/pricing-engine')}
                     icon={<DollarSign className="w-5 h-5" />}
-                    label="Pricing Engine"
+                    label="Smart Quote Architect"
                 />
 
-                <div className="pt-6 pb-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-4 font-display">SaaS Management</div>
+                <div className="pt-6 pb-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] pl-4 font-display">Executive Oversight</div>
                 <NavItem
                     active={path === '/admin/command-center'}
                     onClick={() => navigate('/admin/command-center')}

@@ -11,8 +11,8 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         if (path.includes('/user/pricing-engine')) return { category: 'Pricing Engine', page: 'Calculator' };
         if (path.includes('/user/market-trends')) return { category: 'Market Intelligence', page: 'Global Trends' };
         if (path.includes('/user/global-demand')) return { category: 'Market Intelligence', page: 'Demand Heatmap' };
-        if (path.includes('/admin/command-center')) return { category: 'System Control', page: 'Command Center' };
-        if (path.includes('/user/system-control')) return { category: 'System Control', page: 'Monitoring' };
+        if (path.includes('/admin/command-center')) return { category: 'Market Watchtower', page: 'Command Center' };
+        if (path.includes('/user/system-control')) return { category: 'Market Watchtower', page: 'Monitoring' };
         return { category: 'Analysis', page: 'Scoring Engine' }; // Default
     };
 
@@ -38,7 +38,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-3 px-4 py-1.5 bg-emerald-500/5 border-l border-r border-slate-700/50">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-mono">ICES 1.5 Sync: OK</span>
+                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-display">Customs Compliance: ACTIVE</span>
                         </div>
 
                         <div className="h-4 w-px bg-slate-800"></div>
