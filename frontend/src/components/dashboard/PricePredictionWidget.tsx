@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Calculator, FileText, ArrowRight, Zap, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { Calculator, FileText, ArrowRight, Zap, ShieldCheck, BadgeCheck, Leaf } from 'lucide-react';
 
 interface PricePredictionWidgetProps {
     baseCost: number;
@@ -24,11 +24,33 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
 }) => {
     const location = useLocation();
 
+    // CBAM Intelligence Logic
+    const [destination, setDestination] = useState('Germany');
+    const [productCategory, setProductCategory] = useState('Carbon_Intensive');
+    const [cbamRate, setCbamRate] = useState(0.085); // Default fallback
+
+    useEffect(() => {
+        fetch('/data/regulatory_matrix.json')
+            .then(res => res.json())
+            .then(data => {
+                if (data.cbam_tax_rate_percent) {
+                    setCbamRate(data.cbam_tax_rate_percent);
+                }
+            })
+            .catch(err => console.error("Regulatory Matrix Stream Failed", err));
+    }, []);
+
+    const EU_ZONE = ['Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium'];
+    const isEU = EU_ZONE.includes(destination);
+
     // Derived Calculations
     const totalIncentives = insight?.metrics?.total_incentives || (baseCost * 0.05); // Fallback mock 5%
     const subtotal = baseCost + logistics;
     const netCost = subtotal - totalIncentives;
     const margin = netCost * 0.15; // 15% Margin
+
+    // CBAM Cost Calculation: If EU & Carbon Intensive
+    const carbonCost = (isEU && productCategory === 'Carbon_Intensive') ? (baseCost * cbamRate) : 0;
 
     // Check URL params for GI Status override or use insight prop
     const queryParams = new URLSearchParams(location.search);
@@ -36,7 +58,9 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
     const effectiveGiStatus = paramGiStatus || insight?.gi_status;
 
     const giPremium = effectiveGiStatus === 'REGISTERED' ? netCost * 0.20 : 0;
-    const finalQuote = netCost + margin + giPremium;
+
+    // Final Quote now includes Carbon Cost
+    const finalQuote = netCost + margin + giPremium + carbonCost;
 
     // Engine Latency Simulation
     const [latency, setLatency] = useState(0.4);
@@ -64,14 +88,14 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
             <div className="flex flex-col lg:flex-row h-full relative z-10">
 
                 {/* 1. The Calculation Stack (Left - 60%) */}
-                <div className="w-full lg:w-[60%] p-8 border-r border-slate-800/50 flex flex-col">
+                <div className="w-full lg:w-[60%] p-6 border-r border-slate-800/50 flex flex-col">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="p-2 bg-indigo-500/10 rounded border border-indigo-500/20">
                             <Calculator className="w-5 h-5 text-indigo-400" />
                         </div>
                         <div>
                             <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Profitability Architect</h3>
-                            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-0.5">Live Pricing Engine • Region: Global</div>
+                            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest pl-1">Live Pricing Engine • Region: Global</div>
                         </div>
                     </div>
 
@@ -124,10 +148,55 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                             </div>
                         )}
 
+                        {/* Regulatory Cost (CBAM Estimate) - INTELLIGENCE INJECTION */}
+                        {isEU && productCategory === 'Carbon_Intensive' && (
+                            <div className="group relative flex justify-between items-center py-2 border-b border-teal-900/30 text-teal-400 bg-teal-900/10 px-2 rounded animate-in fade-in slide-in-from-left-4 duration-500 cursor-help">
+                                <div className="flex items-center gap-2 relative">
+                                    <Leaf className="w-4 h-4" />
+                                    <span className="text-sm font-bold">Regulatory Cost (CBAM Estimate)</span>
+
+                                    {/* Tooltip */}
+                                    <div className="absolute left-0 bottom-full mb-2 w-64 bg-slate-900 border border-teal-500/30 p-2 rounded shadow-xl text-[10px] text-slate-300 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                                        Estimated Carbon Certificate cost based on 2026 EU Emissions Trading System.
+                                        <div className="text-teal-400 font-bold mt-1">Zone: {destination} (EU)</div>
+                                    </div>
+                                </div>
+                                <span className="font-mono font-bold text-teal-300">+₹{Math.round(carbonCost).toLocaleString()}</span>
+                            </div>
+                        )}
+
                         {/* Margin */}
                         <div className="flex justify-between items-center px-3 py-1">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recommended Margin (15%)</span>
                             <span className="text-sm font-bold text-slate-400 font-mono">+ ₹{margin.toFixed(0)}</span>
+                        </div>
+                    </div>
+
+                    {/* Metadata Selectors (Hidden Power Features) */}
+                    <div className="px-6 pb-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-1">Destination Market</label>
+                            <select
+                                value={destination}
+                                onChange={(e) => setDestination(e.target.value)}
+                                className="w-full bg-slate-900/50 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 font-mono focus:border-indigo-500 outline-none"
+                            >
+                                <option value="Germany">Germany (EU)</option>
+                                <option value="France">France (EU)</option>
+                                <option value="USA">USA</option>
+                                <option value="UAE">UAE</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-1">Product Category</label>
+                            <select
+                                value={productCategory}
+                                onChange={(e) => setProductCategory(e.target.value)}
+                                className="w-full bg-slate-900/50 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 font-mono focus:border-indigo-500 outline-none"
+                            >
+                                <option value="Carbon_Intensive">Carbon Intensive (Steel/Cement)</option>
+                                <option value="General_Goods">General Goods (Textiles/Agri)</option>
+                            </select>
                         </div>
                     </div>
 

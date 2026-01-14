@@ -74,7 +74,7 @@ function App() {
         } />
 
         <Route path="/user/pricing-engine" element={
-          <div className="p-8 h-screen animate-fade-in flex flex-col items-center justify-center"><PricingEngineWrapper /></div>
+          <div className="p-8 h-screen animate-fade-in flex flex-col items-center"><PricingEngineWrapper /></div>
         } />
 
         <Route path="*" element={<IntelligenceDashboard />} />

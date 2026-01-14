@@ -1,5 +1,97 @@
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/dashboard/Sidebar';
+import { TrendingUp, TrendingDown, Info, DollarSign, Activity } from 'lucide-react';
+
+const ForexTicker: React.FC = () => {
+    const CUSTOMS_RATE = 83.50;
+    const [marketRate, setMarketRate] = useState(84.15);
+    const [lastUpdated, setLastUpdated] = useState<string>('');
+    const [isConnected, setIsConnected] = useState(false);
+
+    useEffect(() => {
+        const fetchRates = async () => {
+            try {
+                const response = await fetch('/data/live_rates.json');
+                const data = await response.json();
+                setMarketRate(data.market_rate);
+                setLastUpdated(data.last_updated);
+                setIsConnected(true);
+            } catch (error) {
+                console.error("Forex Stream Disconnected", error);
+                setIsConnected(false);
+            }
+        };
+
+        fetchRates();
+        const interval = setInterval(fetchRates, 2000); // Poll every 2s for demo heartbeat
+        return () => clearInterval(interval);
+    }, []);
+
+    const gap = marketRate - CUSTOMS_RATE;
+    const isExportLead = gap > 0;
+
+    return (
+        <div className="group relative flex items-center gap-4 px-4 py-1.5 bg-slate-900/50 rounded border border-slate-800/50 cursor-help transition-all hover:border-indigo-500/30">
+            {/* Connection Pulse */}
+            <div className={`absolute -top-1 -right-1 flex`}>
+                <span className={`animate-ping absolute inline-flex h-2 w-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-rose-400'} opacity-75`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${isConnected ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+            </div>
+
+            <div className="flex flex-col items-end leading-none">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                    USD/INR Parity
+                    <Activity className={`w-2 h-2 ${isConnected ? 'text-emerald-500' : 'text-slate-700'}`} />
+                </span>
+                <div className="flex items-center gap-1.5">
+                    <span className={`text-[11px] font-mono font-bold transition-all duration-500 ${isExportLead ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        ₹{marketRate.toFixed(2)}
+                    </span>
+                    {isExportLead ? (
+                        <TrendingUp className="w-3 h-3 text-emerald-500 animate-[bounce_2s_infinite]" />
+                    ) : (
+                        <TrendingDown className="w-3 h-3 text-rose-500" />
+                    )}
+                </div>
+            </div>
+
+            <div className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${isExportLead
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                }`}>
+                {isExportLead ? 'Export Surplus' : 'Import Deficit'}
+            </div>
+
+            {/* Hover Tooltip */}
+            <div className="absolute top-full mt-2 right-0 w-64 bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 p-3 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-800">
+                    <Info className="w-3 h-3 text-indigo-400" />
+                    <span className="text-[10px] font-bold text-white uppercase">Parity Intelligence</span>
+                </div>
+                <div className="space-y-1 font-mono text-[9px]">
+                    <div className="flex justify-between text-slate-400">
+                        <span>CBIC RATE (FIXED):</span>
+                        <span className="text-slate-200">₹{CUSTOMS_RATE.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                        <span>LIVE MARKET:</span>
+                        <span className={`transition-colors duration-300 ${isExportLead ? 'text-emerald-400' : 'text-rose-400'}`}>₹{marketRate.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-500 text-[8px] mt-1">
+                        <span>LAST PACKET:</span>
+                        <span>{lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : 'WAITING...'}</span>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-slate-800/50 text-indigo-300 font-sans font-bold leading-tight">
+                        Advisor: {isExportLead
+                            ? "Market rate exceeds Customs rate. Favorable for Export Realization."
+                            : "Market rate below Customs rate. Warning: Import Duty Inflation Risk."}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const location = useLocation();
@@ -36,6 +128,11 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {/* Intelligence Injection: Forex Radar Ticker */}
+                        <ForexTicker />
+
+                        <div className="h-6 w-px bg-slate-800 mx-2"></div>
+
                         <div className="flex items-center gap-3 px-4 py-1.5 bg-emerald-500/5 border-l border-r border-slate-700/50">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                             <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-display">Customs Compliance: ACTIVE</span>
