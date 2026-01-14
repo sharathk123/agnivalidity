@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play, Square } from 'lucide-react';
+import { SuccessGauge } from './SuccessGauge';
 
 
 interface IngestionSource {
@@ -12,6 +13,11 @@ interface IngestionSource {
     records_updated: number;
     is_active: boolean;
     last_run_at: string | null;
+    performance_stats?: {
+        success_rate: number;
+        cleaned_lines: number;
+        error_count: number;
+    };
 }
 
 interface SourceCardProps {
@@ -57,8 +63,8 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, onRun, onStop, d
                         onClick={() => onRun(source.id)}
                         disabled={disabled || !source.is_active || isRunning}
                         className={`p-2 rounded transition-all shadow-[0_0_10px_rgba(99,102,241,0.3)] ${isRunning
-                                ? 'text-slate-600 bg-slate-800/50 cursor-not-allowed'
-                                : 'text-slate-400 hover:text-white hover:bg-indigo-600 opacity-0 group-hover:opacity-100'
+                            ? 'text-slate-600 bg-slate-800/50 cursor-not-allowed'
+                            : 'text-slate-400 hover:text-white hover:bg-indigo-600 opacity-0 group-hover:opacity-100'
                             }`}
                     >
                         <Play size={14} fill="currentColor" />
@@ -77,6 +83,17 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, onRun, onStop, d
 
 
             </div>
+
+            {/* FTA Success Intelligence Extension */}
+            {source.source_name === 'INVEST_INDIA_FTA' && source.performance_stats && (
+                <div className="mb-4 relative z-10">
+                    <SuccessGauge
+                        successRate={source.performance_stats.success_rate}
+                        cleanedLines={source.performance_stats.cleaned_lines}
+                        errorCount={source.performance_stats.error_count}
+                    />
+                </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-800 mb-4 relative z-10">
                 <div>
