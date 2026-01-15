@@ -168,7 +168,7 @@ export const ODOPSourcingTerminal: React.FC = () => {
                             className="w-full h-full"
                             style={{ background: 'transparent' }}
                         >
-                            <ZoomableGroup center={[82, 23]} zoom={1} minZoom={0.5} maxZoom={4}>
+                            <ZoomableGroup center={[82, 23]} zoom={1} minZoom={1} maxZoom={8} translateExtent={[[0, 0], [800, 600]]}>
                                 <Geographies geography={geoData}>
                                     {({ geographies }) =>
                                         geographies.map((geo) => {

@@ -334,7 +334,7 @@ export const GlobalDemandHeatmap: React.FC = () => {
 
             {/* Map Engine (75%) */}
             <div className={`w-3/4 relative z-0 ${theme === 'light' ? 'bg-slate-100' : 'bg-slate-950'}`}>
-                <MapContainer center={[20, 0]} zoom={2.5} style={{ height: '100%', width: '100%', background: theme === 'light' ? '#f1f5f9' : '#020617' }} zoomControl={false} attributionControl={false}>
+                <MapContainer center={[20, 0]} zoom={2.5} minZoom={2.5} maxZoom={6} maxBounds={[[-85, -180], [85, 180]]} maxBoundsViscosity={1.0} style={{ height: '100%', width: '100%', background: theme === 'light' ? '#f1f5f9' : '#020617' }} zoomControl={false} attributionControl={false}>
                     <TileLayer key={theme} url={tileUrl} />
 
                     {/* Standard Demand Orbs */}
