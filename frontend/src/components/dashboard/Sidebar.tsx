@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Settings, Activity, DollarSign, Boxes, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Cpu, Settings, Activity, DollarSign, Boxes, Globe, ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react';
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                 <NavItem
                     active={path === '/admin/command-center'}
                     onClick={() => navigate('/admin/command-center')}
-                    icon={<Activity className="w-5 h-5" />}
+                    icon={<LayoutDashboard className="w-5 h-5" />}
                     label="Command Center"
                     isCollapsed={isCollapsed}
                 />
