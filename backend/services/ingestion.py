@@ -104,7 +104,12 @@ async def run_ingestion_worker(source_id: int, source_name: str, dry_run: bool):
             from ingestors.demand_ingestor import run_demand_ingestor_task
             result = await run_demand_ingestor_task(db, source_id, dry_run=dry_run, log_callback=log)
 
-        # 6. Default Simulation
+        # 6. CBIC Exchange Rates (Customs Notification)
+        elif source_name == "CBIC_EXCHANGE_MASTER":
+            from ingestors.cbic_ingestor import run_cbic_ingestor_task
+            result = await run_cbic_ingestor_task(db, source_id, dry_run=dry_run, log_callback=log)
+
+        # 7. Default Simulation
         else:
             await log("INFO", "Initializing connection...")
             await asyncio.sleep(1)

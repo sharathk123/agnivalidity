@@ -14,19 +14,23 @@ const ForexTicker: React.FC = () => {
     useEffect(() => {
         const fetchRates = async () => {
             try {
-                const response = await fetch('/data/live_rates.json');
+                const response = await fetch('https://api.frankfurter.app/latest?from=USD&to=INR');
                 const data = await response.json();
-                setMarketRate(data.market_rate);
-                setLastUpdated(data.last_updated);
-                setIsConnected(true);
+                if (data && data.rates && data.rates.INR) {
+                    setMarketRate(data.rates.INR);
+                    setLastUpdated(new Date().toISOString());
+                    setIsConnected(true);
+                }
             } catch (error) {
                 console.error("Forex Stream Disconnected", error);
+                // Keep connected false, but don't clear rate to avoid flickering if it was loaded once
                 setIsConnected(false);
             }
         };
 
         fetchRates();
-        const interval = setInterval(fetchRates, 2000); // Poll every 2s for demo heartbeat
+        // Poll every 60 seconds (Real market doesn't value tick every second on free APIs)
+        const interval = setInterval(fetchRates, 60000);
         return () => clearInterval(interval);
     }, []);
 

@@ -127,8 +127,11 @@ INSERT INTO ingestion_sources (source_name, source_type, base_url, frequency, in
 VALUES ('FAO_PRICES', 'MULTILATERAL', 'https://www.fao.org/faostat', 'MONTHLY', 'REST_API', 'IDLE');
 
 -- GOVERNMENT: FTA INTELLIGENCE (Success Rate Tracking)
-INSERT INTO ingestion_sources (source_name, source_type, base_url, frequency, ingestion_strategy, last_run_status)
 VALUES ('INVEST_INDIA_FTA', 'GOVERNMENT', 'https://www.investindia.gov.in/fta', 'WEEKLY', 'PDF_TO_JSON', 'IDLE');
+
+-- GOVERNMENT: CBIC EXCHANGE RATES (Customs Notifications)
+INSERT INTO ingestion_sources (source_name, source_type, base_url, frequency, ingestion_strategy, last_run_status)
+VALUES ('CBIC_EXCHANGE_MASTER', 'GOVERNMENT', 'https://www.cbic.gov.in/Exchange-Rate-Notifications', 'FORTNIGHTLY', 'PDF_TO_JSON', 'IDLE');
 
 -- ================================================================
 -- PERFORMANCE METRICS
