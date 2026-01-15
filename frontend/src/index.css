@@ -102,8 +102,6 @@ h6 {
 
 .animate-pulse-slow {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  transform-box: fill-box;
-  transform-origin: center;
 }
 
 @keyframes glow {
@@ -120,13 +118,6 @@ h6 {
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-.animate-ping {
-  transform-box: fill-box;
-  transform-origin: center;
 }
 
 /* ☢️ Nuclear Leaflet Glassmorphism Overrides */
