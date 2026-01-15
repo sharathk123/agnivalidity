@@ -17,9 +17,9 @@ export const SuccessGauge: React.FC<SuccessGaugeProps> = ({ successRate, cleaned
 
     // Determine color state
     const getColor = (rate: number) => {
-        if (rate >= 95) return 'text-emerald-500 stroke-emerald-500';
-        if (rate >= 80) return 'text-amber-500 stroke-amber-500';
-        return 'text-rose-500 stroke-rose-500';
+        if (rate >= 95) return 'text-emerald-600 dark:text-emerald-500 stroke-emerald-500';
+        if (rate >= 80) return 'text-amber-600 dark:text-amber-500 stroke-amber-500';
+        return 'text-rose-600 dark:text-rose-500 stroke-rose-500';
     };
 
     const colorClass = getColor(successRate);
@@ -28,7 +28,7 @@ export const SuccessGauge: React.FC<SuccessGaugeProps> = ({ successRate, cleaned
     const offset = circumference - (successRate / 100) * circumference;
 
     return (
-        <div className="flex flex-col items-center mt-4 p-4 bg-slate-950/50 border border-slate-800 rounded-lg relative overflow-hidden group">
+        <div className="flex flex-col items-center mt-4 p-4 bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg relative overflow-hidden group">
             {/* Breathing Background Glow */}
             <div className={`absolute inset-0 bg-current opacity-5 ${isAnimating ? 'animate-pulse' : ''} ${colorClass.split(' ')[0]}`}></div>
 
@@ -39,7 +39,7 @@ export const SuccessGauge: React.FC<SuccessGaugeProps> = ({ successRate, cleaned
                         cx="40"
                         cy="40"
                         r={radius}
-                        className="stroke-slate-800 fill-none"
+                        className="stroke-slate-300 dark:stroke-slate-800 fill-none"
                         strokeWidth="6"
                     />
                     {/* Progress Circle with Animation */}
@@ -47,7 +47,7 @@ export const SuccessGauge: React.FC<SuccessGaugeProps> = ({ successRate, cleaned
                         cx="40"
                         cy="40"
                         r={radius}
-                        className={`fill-none ${colorClass.split(' ')[1]} drop-shadow-[0_0_8px_currentColor]`}
+                        className={`fill-none ${colorClass.split(' ')[2]} drop-shadow-[0_0_8px_currentColor]`}
                         strokeWidth="6"
                         strokeLinecap="round"
                         strokeDasharray={circumference}
@@ -59,10 +59,10 @@ export const SuccessGauge: React.FC<SuccessGaugeProps> = ({ successRate, cleaned
 
                 {/* Percentage Text */}
                 <div className="absolute flex flex-col items-center">
-                    <span className={`text-sm font-bold font-mono ${colorClass.split(' ')[0]}`}>
+                    <span className={`text-sm font-bold font-mono ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}>
                         {successRate.toFixed(1)}%
                     </span>
-                    <span className="text-[8px] font-black text-slate-500 uppercase">Quality</span>
+                    <span className="text-[8px] font-black text-slate-500 dark:text-slate-500 uppercase">Quality</span>
                 </div>
             </div>
 
@@ -78,12 +78,12 @@ export const SuccessGauge: React.FC<SuccessGaugeProps> = ({ successRate, cleaned
             {/* Mini Stats */}
             <div className="flex gap-4 mt-2 w-full justify-between px-2">
                 <div className="flex flex-col items-center">
-                    <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Successes</span>
-                    <span className="text-[10px] font-mono font-bold text-white">{cleanedLines.toLocaleString()}</span>
+                    <span className="text-[8px] text-slate-500 dark:text-slate-500 font-black uppercase tracking-widest">Successes</span>
+                    <span className="text-[10px] font-mono font-bold text-slate-900 dark:text-white">{cleanedLines.toLocaleString()}</span>
                 </div>
-                <div className="flex flex-col items-center cursor-pointer hover:bg-rose-900/20 rounded px-1 transition-colors">
-                    <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Errors</span>
-                    <span className={`text-[10px] font-mono font-bold ${errorCount > 0 ? 'text-rose-400' : 'text-slate-400'}`}>
+                <div className="flex flex-col items-center cursor-pointer hover:bg-rose-100 dark:hover:bg-rose-900/20 rounded px-1 transition-colors">
+                    <span className="text-[8px] text-slate-500 dark:text-slate-500 font-black uppercase tracking-widest">Errors</span>
+                    <span className={`text-[10px] font-mono font-bold ${errorCount > 0 ? 'text-rose-500 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                         {errorCount}
                     </span>
                 </div>

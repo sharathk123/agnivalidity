@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { MapPin, TrendingUp, Boxes, BadgeCheck, Scale, MousePointer2, RefreshCw } from 'lucide-react';
-
+import { useTheme } from '../../contexts/ThemeContext';
 import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker } from 'react-simple-maps';
 // import { scaleLinear } from 'd3-scale'; // Unused for now, kept for future heatmap scaling
 
@@ -37,6 +37,8 @@ let cachedIndiaData: any = null;
 
 export const ODOPSourcingTerminal: React.FC = () => {
     const navigate = useNavigate();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
 
@@ -123,18 +125,18 @@ export const ODOPSourcingTerminal: React.FC = () => {
     };
 
     return (
-        <div className="bg-slate-950/90 border border-slate-700/50 rounded-lg h-full flex overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)] relative select-none">
+        <div className="bg-white dark:bg-slate-950/90 border border-slate-200 dark:border-slate-700/50 rounded-lg h-full flex overflow-hidden shadow-lg dark:shadow-[0_0_20px_rgba(0,0,0,0.5)] relative select-none transition-colors duration-300">
             {/* Grid Background */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none"></div>
 
             <div className="flex w-full h-full relative z-10">
                 {/* 1. Interactive Map Area (65%) */}
-                <div className="w-[65%] border-r border-slate-800/50 relative bg-slate-900/40 z-0 overflow-hidden">
+                <div className="w-[65%] border-r border-slate-200 dark:border-slate-800/50 relative bg-slate-100 dark:bg-slate-900/40 z-0 overflow-hidden">
 
                     <div className="absolute top-6 left-6 z-[10] flex justify-between w-[calc(100%-48px)] pointer-events-none">
                         <div>
-                            <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Sourcing Map</h3>
-                            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">
+                            <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest font-display">Sourcing Map</h3>
+                            <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-1">
                                 {loading ? "Syncing with Invest India..." : `One District One Product • India • ${metrics.totalHubs} Verified Hubs Active`}
                             </div>
 
@@ -142,18 +144,18 @@ export const ODOPSourcingTerminal: React.FC = () => {
                         <button
                             onClick={() => fetchRegistry()}
                             disabled={loading}
-                            className="pointer-events-auto bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700/50 p-2 rounded-full transition-all group active:scale-90 disabled:opacity-50"
+                            className="pointer-events-auto bg-white dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 p-2 rounded-full transition-all group active:scale-90 disabled:opacity-50"
                             title="Sync Data"
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 text-slate-400 group-hover:text-brand-400 ${loading ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-brand-400 ${loading ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
 
                     {!geoData ? (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-950/20">
+                        <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-950/20">
                             <div className="flex flex-col items-center gap-4">
                                 <div className="w-12 h-12 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Generating Sourcing Hubs...</span>
+                                <span className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest">Generating Sourcing Hubs...</span>
                             </div>
                         </div>
                     ) : (
@@ -186,21 +188,33 @@ export const ODOPSourcingTerminal: React.FC = () => {
                                                     onClick={() => setSelectedDistrict(districtName === selectedDistrict ? null : districtName)}
                                                     style={{
                                                         default: {
-                                                            fill: hasData ? (hasData.gi ? '#065f46' : '#92400e') : '#0f172a', // More vibrant Green/Amber for hubs
-                                                            stroke: hasData ? (hasData.gi ? '#10b981' : '#f59e0b') : '#334155',
+                                                            fill: hasData
+                                                                ? (hasData.gi
+                                                                    ? (isDarkMode ? '#065f46' : '#10b981')
+                                                                    : (isDarkMode ? '#92400e' : '#f59e0b'))
+                                                                : (isDarkMode ? '#0f172a' : '#e2e8f0'),
+                                                            stroke: hasData
+                                                                ? (hasData.gi
+                                                                    ? (isDarkMode ? '#10b981' : '#065f46')
+                                                                    : (isDarkMode ? '#f59e0b' : '#92400e'))
+                                                                : (isDarkMode ? '#334155' : '#94a3b8'),
                                                             strokeWidth: hasData ? 2 : 0.5,
                                                             outline: 'none',
                                                             transition: 'all 0.3s ease'
                                                         },
                                                         hover: {
-                                                            fill: hasData ? (hasData.gi ? '#067a5a' : '#b45309') : '#1e293b',
-                                                            stroke: '#ffffff',
+                                                            fill: hasData
+                                                                ? (hasData.gi
+                                                                    ? (isDarkMode ? '#067a5a' : '#059669')
+                                                                    : (isDarkMode ? '#b45309' : '#d97706'))
+                                                                : (isDarkMode ? '#1e293b' : '#cbd5e1'),
+                                                            stroke: isDarkMode ? '#ffffff' : '#1e293b',
                                                             strokeWidth: 1.5,
                                                             outline: 'none',
                                                             cursor: hasData ? 'pointer' : 'default'
                                                         },
                                                         pressed: {
-                                                            fill: '#1e1b4b',
+                                                            fill: isDarkMode ? '#1e1b4b' : '#c7d2fe',
                                                             stroke: '#6366f1',
                                                             outline: 'none'
                                                         }
@@ -266,15 +280,15 @@ export const ODOPSourcingTerminal: React.FC = () => {
                                 { label: 'Districts', value: metrics.totalDistricts, icon: '🏛️' },
                                 { label: 'Products', value: metrics.totalProducts, icon: '📦' }
                             ].map((m, i) => (
-                                <div key={i} className="bg-slate-900/60 backdrop-blur-md border border-slate-700/30 p-2.5 rounded-lg shadow-xl flex flex-col min-w-[90px] group hover:border-brand-500/50 transition-colors">
+                                <div key={i} className="bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200 dark:border-slate-700/30 p-2.5 rounded-lg shadow-lg dark:shadow-xl flex flex-col min-w-[90px] group hover:border-brand-500/50 transition-colors">
                                     <div className="flex items-center justify-between gap-2">
-                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{m.label}</span>
+                                        <span className="text-[9px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest">{m.label}</span>
                                         <span className="text-[10px] opacity-70">{m.icon}</span>
                                     </div>
-                                    <div className="text-lg font-display font-black text-white mt-0.5 group-hover:text-brand-400 transition-colors">
+                                    <div className="text-lg font-display font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-brand-400 transition-colors">
                                         {m.value}
                                     </div>
-                                    <div className="h-0.5 w-full bg-slate-800/50 mt-1.5 rounded-full overflow-hidden">
+                                    <div className="h-0.5 w-full bg-slate-200 dark:bg-slate-800/50 mt-1.5 rounded-full overflow-hidden">
                                         <div className="h-full bg-brand-500 w-1/3 animate-pulse"></div>
                                     </div>
                                 </div>
@@ -343,32 +357,32 @@ export const ODOPSourcingTerminal: React.FC = () => {
                 </div>
 
                 {/* 2. Intelligence Panel (35%) */}
-                <div className="w-[35%] bg-slate-900/50 backdrop-blur-sm p-8 flex flex-col z-10 border-l border-slate-800">
+                <div className="w-[35%] bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm p-8 flex flex-col z-10 border-l border-slate-200 dark:border-slate-800">
                     <div className="flex items-center gap-3 mb-8">
-                        <div className="p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
-                            <Boxes className="w-5 h-5 text-emerald-400" />
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-500/10 rounded border border-emerald-200 dark:border-emerald-500/20">
+                            <Boxes className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Cluster Intelligence</h3>
-                            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-0.5">District Export Hub Analysis</div>
+                            <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest font-display">Cluster Intelligence</h3>
+                            <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-0.5">District Export Hub Analysis</div>
                         </div>
                     </div>
 
                     {activeData ? (
                         <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar animate-fade-in">
                             <div>
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Sourcing ID</label>
-                                <div className="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-1 inline-block rounded border border-indigo-500/20">{activeData.id}</div>
+                                <label className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest block mb-1">Sourcing ID</label>
+                                <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-500/10 px-2 py-1 inline-block rounded border border-indigo-200 dark:border-indigo-500/20">{activeData.id}</div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-slate-950 border border-slate-800 rounded">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-2">Primary Product</label>
-                                    <div className="text-sm font-bold text-white leading-tight">{activeData.product}</div>
-                                    <div className="text-[9px] font-mono text-slate-500 mt-1">HS: {activeData.hsCode}</div>
+                                <div className="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded">
+                                    <label className="text-[9px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest block mb-2">Primary Product</label>
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{activeData.product}</div>
+                                    <div className="text-[9px] font-mono text-slate-500 dark:text-slate-500 mt-1">HS: {activeData.hsCode}</div>
                                 </div>
-                                <div className="p-4 bg-slate-950 border border-slate-800 rounded flex flex-col justify-between">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Status</label>
+                                <div className="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded flex flex-col justify-between">
+                                    <label className="text-[9px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest block mb-1">Status</label>
                                     <div className="flex flex-col gap-2">
                                         {activeData.gi ? (
                                             <div className="flex items-center gap-1.5 text-emerald-400">
@@ -392,48 +406,48 @@ export const ODOPSourcingTerminal: React.FC = () => {
                             </div>
 
                             {/* Premium Potential Gauge */}
-                            <div className="p-4 bg-slate-950 border border-slate-800 rounded">
+                            <div className="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Premium Potential</label>
-                                    <span className={`text-xs font-bold ${activeData.premiumPotential > 80 ? 'text-emerald-400' : activeData.premiumPotential > 50 ? 'text-amber-400' : 'text-slate-400'}`}>
+                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest">Premium Potential</label>
+                                    <span className={`text-xs font-bold ${activeData.premiumPotential > 80 ? 'text-emerald-500 dark:text-emerald-400' : activeData.premiumPotential > 50 ? 'text-amber-500 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                         {activeData.premiumPotential}/100
                                     </span>
                                 </div>
-                                <div className="h-2 bg-slate-900 rounded-full overflow-hidden">
+                                <div className="h-2 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full rounded-full transition-all duration-1000 ${activeData.premiumPotential > 80 ? 'bg-emerald-500' : activeData.premiumPotential > 50 ? 'bg-amber-500' : 'bg-slate-600'}`}
+                                        className={`h-full rounded-full transition-all duration-1000 ${activeData.premiumPotential > 80 ? 'bg-emerald-500' : activeData.premiumPotential > 50 ? 'bg-amber-500' : 'bg-slate-400 dark:bg-slate-600'}`}
                                         style={{ width: `${activeData.premiumPotential}%` }}
                                     ></div>
                                 </div>
                                 {activeData.gi && (
-                                    <div className="mt-3 pt-3 border-t border-slate-800">
-                                        <div className="text-[9px] text-slate-400 italic">"{activeData.brandLineage}"</div>
+                                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                                        <div className="text-[9px] text-slate-500 dark:text-slate-400 italic">"{activeData.brandLineage}"</div>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="p-5 bg-slate-950 border border-slate-800 rounded relative overflow-hidden group">
+                            <div className="p-5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-3 opacity-20">
-                                    <Scale className="w-12 h-12 text-slate-600" />
+                                    <Scale className="w-12 h-12 text-slate-400 dark:text-slate-600" />
                                 </div>
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4 flex items-center gap-2">
+                                <label className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest block mb-4 flex items-center gap-2">
                                     <TrendingUp className="w-3 h-3" /> Arbitrage Opportunity
                                 </label>
 
                                 <div className="flex justify-between items-end mb-2">
                                     <div className="text-right">
-                                        <div className="text-[9px] text-slate-500 mb-0.5">District Price</div>
-                                        <div className="text-lg font-mono font-bold text-slate-300">₹{activeData.localPrice}</div>
+                                        <div className="text-[9px] text-slate-500 dark:text-slate-500 mb-0.5">District Price</div>
+                                        <div className="text-lg font-mono font-bold text-slate-700 dark:text-slate-300">₹{activeData.localPrice}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-[9px] font-mono text-slate-500 mb-0.5">Global Price</div>
-                                        <div className="text-lg font-mono font-bold text-indigo-400">₹{activeData.globalPrice}</div>
+                                        <div className="text-[9px] font-mono text-slate-500 dark:text-slate-500 mb-0.5">Global Price</div>
+                                        <div className="text-lg font-mono font-bold text-indigo-600 dark:text-indigo-400">₹{activeData.globalPrice}</div>
                                     </div>
                                 </div>
 
-                                <div className="mt-2 pt-3 border-t border-slate-800 flex justify-between items-center">
-                                    <span className="text-[10px] font-bold text-slate-400">Projected Margin</span>
-                                    <span className="text-xl font-bold font-mono text-emerald-400">+{arbitrage}%</span>
+                                <div className="mt-2 pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Projected Margin</span>
+                                    <span className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">+{arbitrage}%</span>
                                 </div>
                             </div>
 
@@ -447,12 +461,12 @@ export const ODOPSourcingTerminal: React.FC = () => {
                         </div>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
-                            <MapPin className="w-12 h-12 text-slate-600 mb-4 animate-bounce" />
-                            <p className="text-xs font-bold text-slate-400">Hover over a cluster node to analyze.</p>
+                            <MapPin className="w-12 h-12 text-slate-400 dark:text-slate-600 mb-4 animate-bounce" />
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Hover over a cluster node to analyze.</p>
                         </div>
                     )}
 
-                    <div className="mt-auto pt-6 border-t border-slate-800/50">
+                    <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800/50">
                         <button
                             onClick={handleInitiateSourcing}
                             disabled={!activeData}

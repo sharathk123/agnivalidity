@@ -110,20 +110,20 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
     }, []);
 
     return (
-        <div className="bg-slate-950/90 border border-slate-700/50 rounded-lg h-full flex flex-col relative overflow-hidden shadow-[0_0_25px_rgba(0,0,0,0.5)]">
+        <div className="bg-white dark:bg-slate-950/90 border border-slate-200 dark:border-slate-700/50 rounded-lg h-full flex flex-col relative overflow-hidden shadow-lg dark:shadow-[0_0_25px_rgba(0,0,0,0.5)] transition-colors duration-300">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none"></div>
 
             <div className="flex flex-col lg:flex-row h-full relative z-10">
 
                 {/* 1. The Calculation Stack (Left - 60%) */}
-                <div className="w-full lg:w-[60%] p-6 border-r border-slate-800/50 flex flex-col">
+                <div className="w-full lg:w-[60%] p-6 border-r border-slate-200 dark:border-slate-800/50 flex flex-col">
                     <div className="flex items-center gap-3 mb-8">
-                        <div className="p-2 bg-indigo-500/10 rounded border border-indigo-500/20">
-                            <Calculator className="w-5 h-5 text-indigo-400" />
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-500/10 rounded border border-indigo-200 dark:border-indigo-500/20">
+                            <Calculator className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest font-display">Profitability Architect</h3>
-                            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest pl-1">Live Pricing Engine • Region: Global</div>
+                            <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest font-display">Profitability Architect</h3>
+                            <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest pl-1">Live Pricing Engine • Region: Global</div>
                         </div>
                     </div>
 
@@ -131,30 +131,30 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                         {/* Base Cost */}
                         <div className="group">
                             <div className="flex justify-between items-end mb-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">Base Unit Cost</label>
-                                <span className="text-lg font-bold text-slate-200 font-mono">₹{baseCost.toLocaleString()}</span>
+                                <label className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Base Unit Cost</label>
+                                <span className="text-lg font-bold text-slate-700 dark:text-slate-200 font-mono">₹{baseCost.toLocaleString()}</span>
                             </div>
                             <input
                                 type="range" min="100" max="10000" step="100" value={baseCost}
                                 onChange={(e) => setBaseCost(Number(e.target.value))}
-                                className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-indigo-500 cursor-pointer"
+                                className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full appearance-none accent-indigo-500 cursor-pointer"
                             />
                         </div>
 
                         {/* Logistics */}
                         <div className="group">
                             <div className="flex justify-between items-end mb-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-amber-400 transition-colors">Freight & Logistics</label>
-                                <span className="text-lg font-bold text-slate-200 font-mono">+ ₹{logistics.toLocaleString()}</span>
+                                <label className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Freight & Logistics</label>
+                                <span className="text-lg font-bold text-slate-700 dark:text-slate-200 font-mono">+ ₹{logistics.toLocaleString()}</span>
                             </div>
                             <input
                                 type="range" min="0" max="2000" step="50" value={logistics}
                                 onChange={(e) => setLogistics(Number(e.target.value))}
-                                className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-slate-500 cursor-pointer hover:accent-amber-500"
+                                className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full appearance-none accent-slate-500 cursor-pointer hover:accent-amber-500"
                             />
                         </div>
 
-                        <div className="border-t border-slate-800/50 my-4"></div>
+                        <div className="border-t border-slate-200 dark:border-slate-800/50 my-4"></div>
 
                         <div className="flex justify-between items-center p-3 bg-emerald-500/5 rounded border border-emerald-500/10 hover:bg-emerald-500/10 transition-colors cursor-default group relative">
                             <div className="flex items-center gap-2">
@@ -209,11 +209,11 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                     {/* Metadata Selectors (Hidden Power Features) */}
                     <div className="px-6 pb-2 grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-1">Destination Market</label>
+                            <label className="text-[9px] font-black text-slate-500 dark:text-slate-600 uppercase tracking-widest block mb-1">Destination Market</label>
                             <select
                                 value={destination}
                                 onChange={(e) => setDestination(e.target.value)}
-                                className="w-full bg-slate-900/50 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 font-mono focus:border-indigo-500 outline-none"
+                                className="w-full bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] text-slate-700 dark:text-slate-300 font-mono focus:border-indigo-500 outline-none"
                             >
                                 <option value="Germany">Germany (EU)</option>
                                 <option value="France">France (EU)</option>
@@ -222,11 +222,11 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                             </select>
                         </div>
                         <div>
-                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-1">Product Category</label>
+                            <label className="text-[9px] font-black text-slate-500 dark:text-slate-600 uppercase tracking-widest block mb-1">Product Category</label>
                             <select
                                 value={productCategory}
                                 onChange={(e) => setProductCategory(e.target.value)}
-                                className="w-full bg-slate-900/50 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 font-mono focus:border-indigo-500 outline-none"
+                                className="w-full bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-[10px] text-slate-700 dark:text-slate-300 font-mono focus:border-indigo-500 outline-none"
                             >
                                 <option value="Carbon_Intensive">Carbon Intensive (Steel/Cement)</option>
                                 <option value="General_Goods">General Goods (Textiles/Agri)</option>
@@ -243,36 +243,36 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                 </div>
 
                 {/* 2. The Quotation Preview (Right - 40%) */}
-                <div className="w-full lg:w-[40%] bg-slate-900/50 p-8 flex flex-col relative">
+                <div className="w-full lg:w-[40%] bg-slate-50 dark:bg-slate-900/50 p-8 flex flex-col relative">
                     <div className="absolute top-0 right-0 p-4 opacity-50">
-                        <FileText className="w-24 h-24 text-slate-800" />
+                        <FileText className="w-24 h-24 text-slate-300 dark:text-slate-800" />
                     </div>
 
-                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 border-b border-slate-700/50 pb-2">Pro-Forma Preview</h4>
+                    <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-6 border-b border-slate-200 dark:border-slate-700/50 pb-2">Pro-Forma Preview</h4>
 
                     <div className="space-y-4 flex-1 font-mono text-xs">
-                        <div className="flex justify-between text-slate-400">
+                        <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>INCOTERM:</span>
-                            <span className="font-bold text-slate-200">{incoterm}</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">{incoterm}</span>
                         </div>
-                        <div className="flex justify-between text-slate-400">
+                        <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>TARGET CURRENCY:</span>
-                            <span className="font-bold text-slate-200">USD ($)</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">USD ($)</span>
                         </div>
-                        <div className="flex justify-between text-slate-400">
+                        <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>EXCHANGE RATE:</span>
-                            <span className="font-bold text-slate-200">₹83.50</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">₹83.50</span>
                         </div>
 
-                        <div className="border-t border-dashed border-slate-700 my-4 h-px"></div>
+                        <div className="border-t border-dashed border-slate-300 dark:border-slate-700 my-4 h-px"></div>
 
                         <div className="flex justify-between items-end">
-                            <span className="text-slate-500 font-bold uppercase text-[10px]">Total FOB Value</span>
-                            <span className="text-3xl font-bold text-white tracking-tight">
+                            <span className="text-slate-500 dark:text-slate-500 font-bold uppercase text-[10px]">Total FOB Value</span>
+                            <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                                 ${(finalQuote / 83.5).toLocaleString(undefined, { maximumFractionDigits: 2 })}
                             </span>
                         </div>
-                        <div className="text-right text-[10px] text-slate-500">
+                        <div className="text-right text-[10px] text-slate-500 dark:text-slate-500">
                             (INR ₹{finalQuote.toLocaleString(undefined, { maximumFractionDigits: 0 })})
                         </div>
                     </div>

@@ -20,28 +20,28 @@ export const SeasonalitySignalCard: React.FC = () => {
 
     // Determine Phase
     let phase = 'SOWING';
-    let phaseIcon = <CloudRain className="w-4 h-4 text-emerald-400" />;
-    let phaseColor = 'text-emerald-400';
+    let phaseIcon = <CloudRain className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />;
+    let phaseColor = 'text-emerald-600 dark:text-emerald-400';
 
     if (currentMonthIndex >= 0 && currentMonthIndex <= 2) {
         phase = 'PEAK TRADING'; // Jan-Mar (Post Harvest)
-        phaseIcon = <Activity className="w-4 h-4 text-indigo-400" />;
-        phaseColor = 'text-indigo-400';
+        phaseIcon = <Activity className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />;
+        phaseColor = 'text-indigo-600 dark:text-indigo-400';
     } else if (currentMonthIndex >= 3 && currentMonthIndex <= 5) {
         phase = 'PEAK EXPORT';
-        phaseIcon = <Ship className="w-4 h-4 text-emerald-400" />;
-        phaseColor = 'text-emerald-400';
+        phaseIcon = <Ship className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />;
+        phaseColor = 'text-emerald-600 dark:text-emerald-400';
     } else if (currentMonthIndex >= 9) {
         phase = 'HARVEST';
-        phaseIcon = <Sun className="w-4 h-4 text-amber-400" />;
-        phaseColor = 'text-amber-400';
+        phaseIcon = <Sun className="w-4 h-4 text-amber-500 dark:text-amber-400" />;
+        phaseColor = 'text-amber-600 dark:text-amber-400';
     }
 
     return (
-        <div className="relative w-full bg-slate-900/60 backdrop-blur-md border-b border-slate-800/50 p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
+        <div className="relative w-full bg-white dark:bg-slate-900/60 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/50 p-4 shadow-md dark:shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-3">
-                <h4 className="text-[10px] font-bold text-slate-300 tracking-tighter font-display">SEASONALITY SIGNAL</h4>
-                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded border bg-slate-950/50 border-slate-700/50 ${phaseColor}`}>
+                <h4 className="text-[10px] font-bold text-slate-700 dark:text-slate-300 tracking-tighter font-display">SEASONALITY SIGNAL</h4>
+                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded border bg-slate-100 dark:bg-slate-950/50 border-slate-200 dark:border-slate-700/50 ${phaseColor}`}>
                     {phaseIcon}
                     <span className="text-[9px] font-black uppercase tracking-widest">{phase}</span>
                 </div>
@@ -70,12 +70,12 @@ export const SeasonalitySignalCard: React.FC = () => {
                 </svg>
 
                 {/* Current Month Label */}
-                <div className="absolute bottom-0 text-[9px] font-mono font-bold text-indigo-400 transform -translate-x-1/2" style={{ left: `${(currentMonthIndex / 11) * 100}%` }}>
+                <div className="absolute bottom-0 text-[9px] font-mono font-bold text-indigo-600 dark:text-indigo-400 transform -translate-x-1/2" style={{ left: `${(currentMonthIndex / 11) * 100}%` }}>
                     TODAY
                 </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800/50 flex justify-between items-center text-[8px] font-mono text-slate-500 uppercase tracking-widest">
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800/50 flex justify-between items-center text-[8px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest">
                 <span>Confidence: 92%</span>
                 <span>Src: Tradestat_V2</span>
             </div>

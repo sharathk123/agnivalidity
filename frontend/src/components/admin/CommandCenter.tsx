@@ -22,24 +22,42 @@ interface DashboardStatus {
 
 const API_BASE = 'http://localhost:8000/admin';
 
-const MetricCard = ({ label, value, trend, highlight, isError, onClick }: any) => (
-    <div
-        onClick={onClick}
-        className={`bg-slate-900 border border-slate-700/50 p-8 rounded-lg relative overflow-hidden group shadow-[0_0_15px_rgba(79,70,229,0.05)] hover:border-slate-600 transition-colors ${onClick ? 'cursor-pointer hover:bg-slate-800/50' : ''}`}
-    >
-        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-500"></div>
-        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 relative z-10">{label}</div>
-        <div className={`text-4xl font-display font-bold tracking-tighter relative z-10 font-mono ${highlight ? 'text-white' : isError ? 'text-rose-400' : 'text-indigo-400'
-            } drop-shadow-[0_0_10px_rgba(99,102,241,0.2)]`}>
-            {value}
+const MetricCard = ({ label, value, trend, highlight, isError, onClick }: any) => {
+    // Dynamic shadow color based on status
+    const glowColor = isError ? 'hover:shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:border-rose-500/50' :
+        highlight ? 'hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:border-indigo-500/50' :
+            'hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:border-emerald-500/50';
+
+    return (
+        <div
+            onClick={onClick}
+            className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 p-8 rounded-lg relative overflow-hidden group shadow-sm dark:shadow-none transition-all duration-300 ${glowColor} ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : 'hover:scale-[1.01]'}`}
+        >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/0 to-slate-100/50 dark:from-white/0 dark:to-white/5 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>
+
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 relative z-10 flex items-center justify-between">
+                {label}
+                <div className={`w-1.5 h-1.5 rounded-full ${isError ? 'bg-rose-500' : 'bg-emerald-500'} opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_5px_currentColor]`}></div>
+            </div>
+
+            <div className={`text-4xl font-display font-bold tracking-tighter relative z-10 font-mono ${highlight ? 'text-slate-900 dark:text-white' : isError ? 'text-rose-500 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
+                } transition-all duration-300 group-hover:translate-x-1`}>
+                {value}
+            </div>
+
+            <div className={`text-[9px] font-black uppercase tracking-widest mt-4 flex items-center gap-2 relative z-10 ${isError ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+                }`}>
+                <span className={`px-2 py-0.5 rounded border ${isError
+                    ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20'
+                    : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20'}`}>
+                    {trend}
+                </span>
+            </div>
         </div>
-        <div className={`text-[9px] font-black uppercase tracking-widest mt-4 flex items-center gap-1.5 relative z-10 ${isError ? 'text-rose-400' : 'text-emerald-400'
-            }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isError ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse shadow-[0_0_5px_currentColor]`}></span>
-            {trend}
-        </div>
-    </div>
-);
+    );
+};
 
 export const AdminCommandCenter: React.FC = () => {
     const [status, setStatus] = useState<DashboardStatus | null>(null);
@@ -196,7 +214,7 @@ export const AdminCommandCenter: React.FC = () => {
     );
 
     return (
-        <div className={`flex flex-col min-h-screen bg-slate-950 relative overflow-hidden transition-colors duration-500 ${systemStatus === 'PAUSED' ? 'bg-rose-950/20' : ''}`}>
+        <div className={`flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden transition-colors duration-500 ${systemStatus === 'PAUSED' ? 'bg-rose-100 dark:bg-rose-950/20' : ''}`}>
             <SystemPulseBar
                 status={systemStatus}
                 onReset={initiateSoftReset}
@@ -206,22 +224,22 @@ export const AdminCommandCenter: React.FC = () => {
 
             <div className="p-8 animate-fade-in flex flex-col flex-1">
                 {/* Global Grid Overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.05] pointer-events-none"></div>
+
 
                 {/* Header */}
                 <div className="flex justify-between items-end mb-8 relative z-10">
                     <div>
-                        <h2 className="text-3xl font-black font-display text-white tracking-tighter uppercase">Command Center</h2>
-                        <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">Admin Authority Level 0</div>
+                        <h2 className="text-3xl font-black font-display text-slate-900 dark:text-white tracking-tighter uppercase">Command Center</h2>
+                        <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-1">Admin Authority Level 0</div>
                     </div>
 
                     {/* Protocol Master Switch */}
                     <button
                         onClick={toggleKillSwitch}
                         disabled={killSwitchLoading || systemStatus === 'RESETTING'}
-                        className={`flex items-center gap-4 px-6 py-3 rounded border transition-all shadow-[0_0_20px_rgba(0,0,0,0.2)] group ${systemStatus === 'PAUSED'
-                            ? 'bg-rose-950/80 border-rose-500 text-rose-400 shadow-[0_0_30px_rgba(225,29,72,0.3)]'
-                            : 'bg-slate-900 border-slate-700/50 text-emerald-400 hover:border-emerald-500/30'
+                        className={`flex items-center gap-4 px-6 py-3 rounded border transition-all shadow-md dark:shadow-[0_0_20px_rgba(0,0,0,0.2)] group ${systemStatus === 'PAUSED'
+                            ? 'bg-rose-100 dark:bg-rose-950/80 border-rose-400 dark:border-rose-500 text-rose-500 dark:text-rose-400 shadow-[0_0_30px_rgba(225,29,72,0.2)] dark:shadow-[0_0_30px_rgba(225,29,72,0.3)]'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/50 text-emerald-600 dark:text-emerald-400 hover:border-emerald-400 dark:hover:border-emerald-500/30'
                             }`}
                     >
                         <div className={`w-3 h-3 rounded-full ${systemStatus === 'PAUSED' ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`}></div>
@@ -263,22 +281,22 @@ export const AdminCommandCenter: React.FC = () => {
                     <div className="grid grid-cols-12 gap-10">
                         {/* Ingestion Registry Searchable Grid */}
                         <div className="col-span-12 lg:col-span-8 space-y-8">
-                            <div className="flex justify-between items-center bg-slate-900 border border-slate-700/50 p-6 rounded-lg shadow-[0_0_15px_rgba(79,70,229,0.05)]">
+                            <div className="flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 p-6 rounded-lg shadow-md dark:shadow-[0_0_15px_rgba(79,70,229,0.05)]">
                                 <div className="flex flex-col">
-                                    <h3 className="text-sm font-black text-white uppercase tracking-tighter font-display">Ingestion Registry</h3>
-                                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1 font-display">Found <span className="font-mono">{filteredSources.length}</span> Verified Data Partners</span>
+                                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter font-display">Ingestion Registry</h3>
+                                    <span className="text-[9px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest mt-1 font-display">Found <span className="font-mono">{filteredSources.length}</span> Verified Data Partners</span>
                                 </div>
                                 <div className="flex items-center gap-6">
-                                    <div className="hidden md:flex items-center gap-2 p-1 bg-slate-950/50 border border-slate-800 rounded-lg">
+                                    <div className="hidden md:flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg">
                                         <button
                                             onClick={() => setIsDryRun(true)}
-                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded transition-all ${isDryRun ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded transition-all ${isDryRun ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                         >
                                             TEST_MODE
                                         </button>
                                         <button
                                             onClick={() => setIsDryRun(false)}
-                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded transition-all ${!isDryRun ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded transition-all ${!isDryRun ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                         >
                                             PROD_MODE
                                         </button>
@@ -291,7 +309,7 @@ export const AdminCommandCenter: React.FC = () => {
                                             placeholder="Filter Registry..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="relative w-64 bg-slate-950/50 border border-slate-800 rounded px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-indigo-500/50 focus:bg-slate-900 transition-all placeholder:text-slate-700 font-mono focus:shadow-[0_0_15px_rgba(79,70,229,0.1)]"
+                                            className="relative w-64 bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:border-indigo-500/50 focus:bg-white dark:focus:bg-slate-900 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-700 font-mono focus:shadow-[0_0_15px_rgba(79,70,229,0.1)]"
                                         />
                                     </div>
                                 </div>
@@ -322,16 +340,16 @@ export const AdminCommandCenter: React.FC = () => {
                             </div>
                             <LogConsole logs={logs} />
 
-                            <div className="bg-slate-900/50 border border-indigo-500/20 rounded-lg p-6 relative overflow-hidden group shadow-[0_0_15px_rgba(79,70,229,0.05)]">
+                            <div className="bg-slate-100 dark:bg-slate-900/50 border border-indigo-200 dark:border-indigo-500/20 rounded-lg p-6 relative overflow-hidden group shadow-md dark:shadow-[0_0_15px_rgba(79,70,229,0.05)]">
                                 <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
                                 <div className="flex gap-4 relative z-10">
-                                    <span className="text-xl text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">⚖️</span>
+                                    <span className="text-xl text-indigo-500 dark:text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">⚖️</span>
                                     <div>
-                                        <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-2">2026 Regulatory Patch</h4>
-                                        <p className="text-[10px] text-slate-400 leading-relaxed font-medium font-mono">
+                                        <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest mb-2">2026 Regulatory Patch</h4>
+                                        <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium font-mono">
                                             ICEGATE JSON Schema v1.1 validation is enforced.
                                             <br />
-                                            <span className="text-rose-400">Non-compliant ingestion records will be automatically quarantined.</span>
+                                            <span className="text-rose-500 dark:text-rose-400">Non-compliant ingestion records will be automatically quarantined.</span>
                                         </p>
                                     </div>
                                 </div>
@@ -340,8 +358,8 @@ export const AdminCommandCenter: React.FC = () => {
                     </div>
                 </div>
 
-                <div className={`text-right pt-2 border-t border-slate-800/50 mt-6`}>
-                    <span className="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest">
+                <div className={`text-right pt-2 border-t border-slate-200 dark:border-slate-800/50 mt-6`}>
+                    <span className="text-[10px] font-mono font-black text-slate-500 dark:text-slate-600 uppercase tracking-widest">
                         ICES 1.5 ACTIVE | 2026 MANDATORY JSON V1.1 VALIDATION ACTIVE | QUARANTINE PROTOCOLS ENGAGED
                     </span>
                 </div>

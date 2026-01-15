@@ -2,8 +2,36 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+/* Semantic Theme Variables */
+:root {
+  --bg-app: #f8fafc;           /* Light: slate-50 */
+  --bg-card: #ffffff;           /* Light: white */
+  --text-primary: #0f172a;      /* Light: slate-900 */
+  --text-secondary: #64748b;    /* Light: slate-500 */
+  --text-muted: #94a3b8;        /* Light: slate-400 */
+  --border-default: #e2e8f0;    /* Light: slate-200 */
+  --border-subtle: #f1f5f9;     /* Light: slate-100 */
+  
+  /* Technical panels - ALWAYS dark */
+  --tech-panel-bg: #0f172a;
+  --tech-panel-border: #1e293b;
+  --tech-panel-text: #10b981;
+}
+
+.dark {
+  --bg-app: #020617;            /* Dark: slate-950 */
+  --bg-card: #0f172a;           /* Dark: slate-900 */
+  --text-primary: #f1f5f9;      /* Dark: slate-100 */
+  --text-secondary: #94a3b8;    /* Dark: slate-400 */
+  --text-muted: #64748b;        /* Dark: slate-500 */
+  --border-default: #1e293b;    /* Dark: slate-800 */
+  --border-subtle: #334155;     /* Dark: slate-700 */
+}
+
 body {
-  @apply bg-[#020617] text-slate-200 font-sans antialiased;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  @apply font-sans antialiased transition-colors duration-300;
 }
 
 h1,

@@ -143,10 +143,10 @@ export const IntelligenceDashboard: React.FC = () => {
         <div className="p-8 space-y-12 animate-fade-in max-w-[1920px] mx-auto min-h-screen flex flex-col">
             {/* Header */}
             <div className="text-center space-y-4 pt-10">
-                <div className="text-indigo-400 font-black text-[10px] uppercase tracking-[0.3em] drop-shadow-[0_0_5px_rgba(99,102,241,0.5)]">
+                <div className="text-indigo-600 dark:text-indigo-400 font-black text-[10px] uppercase tracking-[0.3em] dark:drop-shadow-[0_0_5px_rgba(99,102,241,0.5)]">
                     Enterprise Intelligence Unit
                 </div>
-                <h2 className="text-5xl font-display font-bold tracking-tighter text-white">
+                <h2 className="text-5xl font-display font-bold tracking-tighter text-slate-900 dark:text-white">
                     Agni Verified Analysis
                 </h2>
                 <div className="max-w-2xl mx-auto shadow-[0_0_30px_rgba(79,70,229,0.1)] rounded-xl">
@@ -168,12 +168,12 @@ export const IntelligenceDashboard: React.FC = () => {
                         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
                         <div className="relative z-10 text-center space-y-6">
-                            <div className="w-20 h-20 mx-auto border-2 border-slate-800 rounded-full flex items-center justify-center">
-                                <span className="w-2 h-2 bg-slate-600 rounded-full animate-ping"></span>
+                            <div className="w-20 h-20 mx-auto border-2 border-slate-300 dark:border-slate-800 rounded-full flex items-center justify-center">
+                                <span className="w-2 h-2 bg-slate-400 dark:bg-slate-600 rounded-full animate-ping"></span>
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold font-display text-slate-300 tracking-widest uppercase">System Ready</h3>
-                                <p className="text-xs font-mono text-slate-500 mt-2">Awaiting HS Code input for deep analysis.</p>
+                                <h3 className="text-lg font-bold font-display text-slate-700 dark:text-slate-300 tracking-widest uppercase">System Ready</h3>
+                                <p className="text-xs font-mono text-slate-500 dark:text-slate-500 mt-2">Awaiting HS Code input for deep analysis.</p>
                             </div>
                             <div className="flex items-center justify-center gap-2">
                                 <span className="w-1.5 h-3 bg-indigo-500 animate-pulse"></span>
@@ -186,15 +186,15 @@ export const IntelligenceDashboard: React.FC = () => {
                 {/* ERROR STATE */}
                 {error && !loading && !insight && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-20 animate-in fade-in zoom-in duration-300">
-                        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md text-center shadow-[0_0_50px_rgba(220,38,38,0.2)]">
-                            <div className="w-16 h-16 mx-auto bg-rose-500/10 rounded-full flex items-center justify-center mb-6 border border-rose-500/20">
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl max-w-md text-center shadow-lg dark:shadow-[0_0_50px_rgba(220,38,38,0.2)]">
+                            <div className="w-16 h-16 mx-auto bg-rose-100 dark:bg-rose-500/10 rounded-full flex items-center justify-center mb-6 border border-rose-200 dark:border-rose-500/20">
                                 <div className="text-2xl">⚠️</div>
                             </div>
-                            <h3 className="text-xl font-bold font-display text-white tracking-wide mb-2">ANALYSIS INTERRUPTED</h3>
-                            <p className="text-sm font-mono text-rose-400 mb-6 px-4">{error}</p>
+                            <h3 className="text-xl font-bold font-display text-slate-900 dark:text-white tracking-wide mb-2">ANALYSIS INTERRUPTED</h3>
+                            <p className="text-sm font-mono text-rose-600 dark:text-rose-400 mb-6 px-4">{error}</p>
                             <button
                                 onClick={() => setError(null)}
-                                className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-black uppercase tracking-widest transition-all border border-slate-700 hover:border-slate-600"
+                                className="px-6 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                             >
                                 Acknowledge
                             </button>
@@ -213,15 +213,15 @@ export const IntelligenceDashboard: React.FC = () => {
 
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="text-center">
-                                    <div className="text-2xl font-bold text-white font-mono tracking-tighter">SCANNING</div>
-                                    <div className="text-[10px] text-indigo-400 font-mono mt-1">ACCESSING DATA LAKE</div>
+                                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono tracking-tighter">SCANNING</div>
+                                    <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono mt-1">ACCESSING DATA LAKE</div>
                                 </div>
                             </div>
                         </div>
                         <div className="mt-8 space-y-1 text-center">
-                            <div className="text-[10px] font-mono text-slate-400">CONNECTING TO ICEGATE_V2... <span className="text-emerald-500">OK</span></div>
-                            <div className="text-[10px] font-mono text-slate-400">FETCHING RODTEP SCROLLS... <span className="text-emerald-500">OK</span></div>
-                            <div className="text-[10px] font-mono text-slate-400">VALIDATING COMPLIANCE... <span className="text-amber-500">PENDING</span></div>
+                            <div className="text-[10px] font-mono text-slate-600 dark:text-slate-400">CONNECTING TO ICEGATE_V2... <span className="text-emerald-600 dark:text-emerald-500">OK</span></div>
+                            <div className="text-[10px] font-mono text-slate-600 dark:text-slate-400">FETCHING RODTEP SCROLLS... <span className="text-emerald-600 dark:text-emerald-500">OK</span></div>
+                            <div className="text-[10px] font-mono text-slate-600 dark:text-slate-400">VALIDATING COMPLIANCE... <span className="text-amber-600 dark:text-amber-500">PENDING</span></div>
                         </div>
                     </div>
                 )}
@@ -259,12 +259,12 @@ export const IntelligenceDashboard: React.FC = () => {
                                 </div>
 
                                 {/* Product Verdict Card (Small) */}
-                                <div className="bg-slate-900 border border-slate-700/50 p-6 flex flex-col justify-center items-center text-center shadow-[0_0_15px_rgba(79,70,229,0.05)]">
-                                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Final Verdict</div>
-                                    <div className={`text-4xl font-black font-display tracking-tight ${insight.verdict === 'GO' ? 'text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'text-rose-400'}`}>
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 p-6 flex flex-col justify-center items-center text-center shadow-sm dark:shadow-[0_0_15px_rgba(79,70,229,0.05)]">
+                                    <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Final Verdict</div>
+                                    <div className={`text-4xl font-black font-display tracking-tight ${insight.verdict === 'GO' ? 'text-emerald-600 dark:text-emerald-400 dark:drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'text-rose-500 dark:text-rose-400'}`}>
                                         {insight.verdict}
                                     </div>
-                                    <div className="text-[10px] font-mono text-slate-500 mt-2">CONFIDENCE: {insight.confidence}%</div>
+                                    <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 mt-2">CONFIDENCE: {insight.confidence}%</div>
                                 </div>
                             </motion.div>
                         </motion.div>
@@ -272,8 +272,8 @@ export const IntelligenceDashboard: React.FC = () => {
                 </AnimatePresence>
             </div>
 
-            <div className={`text-right pt-2 border-t border-slate-800/50 ${!insight ? 'fixed bottom-6 right-8 w-[calc(100%-4rem)]' : ''}`}>
-                <span className="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest">
+            <div className={`text-right pt-2 border-t border-slate-200 dark:border-slate-800/50 ${!insight ? 'fixed bottom-6 right-8 w-[calc(100%-4rem)]' : ''}`}>
+                <span className="text-[10px] font-mono font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">
                     ICES 1.5 ACTIVE | 2026 MANDATORY JSON V1.1 VALIDATION ACTIVE | QUARANTINE PROTOCOLS ENGAGED
                 </span>
             </div>
