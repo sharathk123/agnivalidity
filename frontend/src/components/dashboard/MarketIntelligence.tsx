@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { GlobalMarketPulse } from './GlobalMarketPulse';
 import { TelemetryStream } from './TelemetryStream';
 import { SeasonalitySignalCard } from './SeasonalitySignalCard';
+import { Skeleton } from '../ui/Skeleton';
 
 const chartData = [
     { name: 'Jan', price: 4000, profit: 2400 },
@@ -29,6 +30,13 @@ const signals = [
 export const MarketIntelligence: React.FC = () => {
     const [viewMode, setViewMode] = useState<'PRICE' | 'PROFIT'>('PRICE');
     const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Simulate Data Fetching
+    React.useEffect(() => {
+        const timer = setTimeout(() => setIsLoading(false), 2000);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <div className="p-6 h-screen flex flex-col gap-6 animate-fade-in overflow-hidden relative">
@@ -41,7 +49,36 @@ export const MarketIntelligence: React.FC = () => {
                         <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-1">Consolidated Surveillance & Analytics Hub</div>
                     </div>
                 </div>
-                <GlobalMarketPulse />
+                {isLoading ? (
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 p-6 rounded-lg shadow-sm">
+                        <div className="flex justify-between items-start mb-8">
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="w-10 h-10 rounded-lg" />
+                                <div>
+                                    <Skeleton className="w-48 h-6 mb-2" />
+                                    <Skeleton className="w-32 h-4" />
+                                </div>
+                            </div>
+                            <div className="flex gap-8">
+                                <div className="space-y-1">
+                                    <Skeleton className="w-32 h-3" />
+                                    <Skeleton className="w-16 h-8" />
+                                </div>
+                                <div className="space-y-1">
+                                    <Skeleton className="w-32 h-3" />
+                                    <Skeleton className="w-16 h-8" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                            {[1, 2, 3, 4].map(i => (
+                                <Skeleton key={i} className="h-24 rounded" />
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <GlobalMarketPulse />
+                )}
             </div>
 
             {/* 2. Main Content Area (Signals + Trends) */}
@@ -54,26 +91,39 @@ export const MarketIntelligence: React.FC = () => {
                         <h3 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest font-display">Live Signals</h3>
                     </div>
 
-                    {/* Seasonality Signal (Moved from Chart Overlay) */}
-                    <div className="mb-4 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800/50">
-                        <SeasonalitySignalCard />
-                    </div>
+                    {/* Seasonality Signal */}
+                    {isLoading ? (
+                        <Skeleton className="h-32 w-full rounded-lg mb-4" />
+                    ) : (
+                        <div className="mb-4 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800/50">
+                            <SeasonalitySignalCard />
+                        </div>
+                    )}
 
                     <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                        {signals.map(signal => (
-                            <div key={signal.id} className="p-3 bg-slate-50 dark:bg-slate-900 border-l-2 border-emerald-500/50 hover:border-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group cursor-pointer">
-                                <span className={`text-[9px] font-black uppercase tracking-widest mb-1 block ${signal.type === 'CRITICAL' ? 'text-rose-500 dark:text-rose-400' :
-                                    signal.type === 'RISK' ? 'text-amber-500 dark:text-amber-400' :
-                                        signal.type === 'OPPORTUNITY' ? 'text-emerald-600 dark:text-emerald-400' :
-                                            'text-indigo-600 dark:text-indigo-400'
-                                    }`}>
-                                    [{signal.type}]
-                                </span>
-                                <p className="text-[10px] font-mono text-slate-600 dark:text-emerald-100/80 leading-relaxed group-hover:text-slate-800 dark:group-hover:text-white transition-colors">
-                                    {signal.text}
-                                </p>
-                            </div>
-                        ))}
+                        {isLoading ? (
+                            Array.from({ length: 6 }).map((_, i) => (
+                                <div key={i} className="p-3 border-l-2 border-slate-200 dark:border-slate-800">
+                                    <Skeleton className="w-24 h-3 mb-2" />
+                                    <Skeleton className="w-full h-8" />
+                                </div>
+                            ))
+                        ) : (
+                            signals.map(signal => (
+                                <div key={signal.id} className="p-3 bg-slate-50 dark:bg-slate-900 border-l-2 border-emerald-500/50 hover:border-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group cursor-pointer">
+                                    <span className={`text-[9px] font-black uppercase tracking-widest mb-1 block ${signal.type === 'CRITICAL' ? 'text-rose-500 dark:text-rose-400' :
+                                        signal.type === 'RISK' ? 'text-amber-500 dark:text-amber-400' :
+                                            signal.type === 'OPPORTUNITY' ? 'text-emerald-600 dark:text-emerald-400' :
+                                                'text-indigo-600 dark:text-indigo-400'
+                                        }`}>
+                                        [{signal.type}]
+                                    </span>
+                                    <p className="text-[10px] font-mono text-slate-600 dark:text-emerald-100/80 leading-relaxed group-hover:text-slate-800 dark:group-hover:text-white transition-colors">
+                                        {signal.text}
+                                    </p>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 
@@ -96,29 +146,40 @@ export const MarketIntelligence: React.FC = () => {
                     </div>
 
                     <div className="flex-1 relative bg-slate-50 dark:bg-slate-900/20 rounded border border-slate-200 dark:border-slate-700/30">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-[#1e293b]" vertical={false} />
-                                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} dy={10} />
-                                <YAxis stroke="#94a3b8" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }}
-                                    itemStyle={{ fontSize: '12px' }}
-                                    labelStyle={{ fontSize: '10px', color: '#94a3b8' }}
-                                />
-                                <Area type="monotone" dataKey={viewMode === 'PRICE' ? 'price' : 'profit'} stroke={viewMode === 'PRICE' ? '#818cf8' : '#34d399'} fillOpacity={1} fill={`url(#${viewMode === 'PRICE' ? 'colorPrice' : 'colorProfit'})`} />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                        {isLoading ? (
+                            <div className="w-full h-full p-4 flex flex-col justify-end space-y-4">
+                                <Skeleton className="w-full h-[80%]" />
+                                <div className="flex justify-between">
+                                    {Array.from({ length: 7 }).map((_, i) => (
+                                        <Skeleton key={i} className="w-8 h-4" />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-[#1e293b]" vertical={false} />
+                                    <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} dy={10} />
+                                    <YAxis stroke="#94a3b8" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }}
+                                        itemStyle={{ fontSize: '12px' }}
+                                        labelStyle={{ fontSize: '10px', color: '#94a3b8' }}
+                                    />
+                                    <Area type="monotone" dataKey={viewMode === 'PRICE' ? 'price' : 'profit'} stroke={viewMode === 'PRICE' ? '#818cf8' : '#34d399'} fillOpacity={1} fill={`url(#${viewMode === 'PRICE' ? 'colorPrice' : 'colorProfit'})`} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play, Square } from 'lucide-react';
 import { SuccessGauge } from './SuccessGauge';
+import { Sparkline } from '../ui/Sparkline';
 
 
 interface IngestionSource {
@@ -18,6 +19,7 @@ interface IngestionSource {
         cleaned_lines: number;
         error_count: number;
     };
+    run_history?: number[];
 }
 
 interface SourceCardProps {
@@ -105,6 +107,18 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, onRun, onStop, d
                     <div className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 font-mono">{source.records_updated.toLocaleString()}</div>
                 </div>
             </div>
+
+            {/* Performance Sparkline */}
+            {source.run_history && source.run_history.length > 0 && (
+                <div className="mb-4 relative z-10">
+                    <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Performance Trend (Last 7 Runs)</div>
+                    <Sparkline
+                        data={source.run_history}
+                        color={source.last_run_status === 'FAILED' ? '#f43f5e' : '#10b981'}
+                        height={32}
+                    />
+                </div>
+            )}
 
             <div className={`flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 -mx-6 -mb-6 px-6 py-3 border-t border-slate-200 dark:border-slate-800 mt-2 relative z-10`}>
                 <div className="flex flex-col">

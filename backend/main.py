@@ -81,27 +81,7 @@ async def get_odop_registry(db: Session = Depends(get_db)):
 
     return registry
 
-# --- Pydantic Models for Global Demand ---
-class DemandOrb(BaseModel):
-    id: int
-    name: str
-    lat: float
-    lng: float
-    volume: int
-    growth: str
-    product: Optional[str]
-
-class ExpansionMarket(BaseModel):
-    country: str
-    growth: str
-    goods: str
-    score: float
-
-class GlobalDemandResponse(BaseModel):
-    orbs: List[DemandOrb]
-    expansion_markets: List[ExpansionMarket]
-    is_live: bool
-    last_sync: str
+from schemas.demand import DemandOrb, ExpansionMarket, GlobalDemandResponse
 
 @app.get("/api/v1/global-demand", response_model=GlobalDemandResponse)
 

@@ -180,6 +180,60 @@ class QuoteHistory(Base):
     pdf_path = Column(String)
     created_at = Column(TEXT)
 
+# 8. Admin & Ingestion Control (Module 7)
+class IngestionSourceModel(Base):
+    __tablename__ = "ingestion_sources"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_name = Column(String, unique=True, nullable=False)
+    source_type = Column(String, nullable=False)
+    base_url = Column(String)
+    frequency = Column(String, default='MANUAL')
+    is_active = Column(Integer, default=1) # Boolean as Integer in SQLite often safer
+    dry_run_mode = Column(Integer, default=0)
+    throttle_rpm = Column(Integer, default=10)
+    ingestion_strategy = Column(String, default='REST_API')
+    last_run_status = Column(String)
+    last_run_at = Column(String) # Stored as ISO Text
+    records_updated = Column(Integer, default=0)
+    created_at = Column(String)
+
+class IngestionLogModel(Base):
+    __tablename__ = "ingestion_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_id = Column(Integer, ForeignKey("ingestion_sources.id"), nullable=False)
+    run_type = Column(String, default='FULL')
+    records_fetched = Column(Integer, default=0)
+    records_inserted = Column(Integer, default=0)
+    records_updated = Column(Integer, default=0)
+    records_skipped = Column(Integer, default=0)
+    error_summary = Column(String)
+    schema_drift_detected = Column(Integer, default=0)
+    started_at = Column(String)
+    finished_at = Column(String)
+    duration_seconds = Column(Integer)
+
+class SystemSettingModel(Base):
+    __tablename__ = "system_settings"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    setting_key = Column(String, unique=True, nullable=False)
+    setting_value = Column(String, nullable=False)
+    description = Column(String)
+    updated_at = Column(String)
+
+class FTAPerformanceModel(Base):
+    __tablename__ = "fta_performance"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_id = Column(Integer, ForeignKey("ingestion_sources.id"))
+    cleaned_tariff_lines = Column(Integer)
+    total_raw_lines = Column(Integer)
+    success_rate = Column(Float)
+    error_count = Column(Integer)
+    calculated_at = Column(String)
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 

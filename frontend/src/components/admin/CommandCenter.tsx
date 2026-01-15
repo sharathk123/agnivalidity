@@ -112,8 +112,12 @@ export const AdminCommandCenter: React.FC = () => {
                 axios.get(`${API_BASE}/health/dashboard`),
                 axios.get(`${API_BASE}/ingestion/status`)
             ]);
+            const sourcesWithMockHistory = sourcesRes.data.sources.map((s: IngestionSource) => ({
+                ...s,
+                run_history: Array.from({ length: 10 }, () => Math.random() > 0.2 ? 100 : Math.random() * 50) // Mock History: Mostly success (100), some dips
+            }));
             setStatus(statusRes.data);
-            setSources(sourcesRes.data.sources);
+            setSources(sourcesWithMockHistory);
         } catch (error) {
             console.error('Failed to fetch admin data', error);
         } finally {

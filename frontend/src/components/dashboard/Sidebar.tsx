@@ -33,17 +33,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
             <nav className="flex-1 p-4 space-y-1 overflow-x-hidden">
                 {!isCollapsed && <div className="pb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] pl-4 font-display whitespace-nowrap">Strategic Operations</div>}
                 <NavItem
-                    active={path === '/user/intelligence' || path === '/dashboard' || path === '/'}
-                    onClick={() => navigate('/user/intelligence')}
-                    icon={<Cpu className="w-5 h-5" />}
-                    label="Export Overview"
-                    isCollapsed={isCollapsed}
-                />
-                <NavItem
                     active={path === '/user/market-intelligence'}
                     onClick={() => navigate('/user/market-intelligence')}
                     icon={<Activity className="w-5 h-5" />}
                     label="Market Intelligence"
+                    isCollapsed={isCollapsed}
+                />
+                <NavItem
+                    active={path === '/user/global-demand'}
+                    onClick={() => navigate('/user/global-demand')}
+                    icon={<Globe className="w-5 h-5" />}
+                    label="Global Demand"
                     isCollapsed={isCollapsed}
                 />
                 <NavItem
@@ -54,10 +54,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                     isCollapsed={isCollapsed}
                 />
                 <NavItem
-                    active={path === '/user/global-demand'}
-                    onClick={() => navigate('/user/global-demand')}
-                    icon={<Globe className="w-5 h-5" />}
-                    label="Global Demand"
+                    active={path === '/user/intelligence' || path === '/dashboard' || path === '/'}
+                    onClick={() => navigate('/user/intelligence')}
+                    icon={<Cpu className="w-5 h-5" />}
+                    label="Export Overview"
                     isCollapsed={isCollapsed}
                 />
                 <NavItem
