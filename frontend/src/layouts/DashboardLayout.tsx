@@ -34,12 +34,7 @@ const ForexTicker: React.FC = () => {
     const isExportLead = gap > 0;
 
     return (
-        <div className="group relative flex items-center gap-4 px-4 py-1.5 bg-slate-100 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-800/50 cursor-help transition-all hover:border-indigo-400 dark:hover:border-indigo-500/30">
-            {/* Connection Pulse */}
-            <div className={`absolute -top-1 -right-1 flex`}>
-                <span className={`animate-ping absolute inline-flex h-2 w-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-rose-400'} opacity-75`}></span>
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${isConnected ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-            </div>
+        <div className="group relative flex items-center gap-4 px-4 py-1.5 bg-white/80 dark:bg-slate-900/50 backdrop-blur-md rounded border border-white/50 dark:border-slate-800/50 cursor-help transition-all shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-none hover:border-indigo-400 dark:hover:border-indigo-500/30">
 
             <div className="flex flex-col items-end leading-none">
                 <span className="text-[9px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">

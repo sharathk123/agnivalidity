@@ -110,7 +110,7 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
     }, []);
 
     return (
-        <div className="bg-white dark:bg-slate-950/90 border border-slate-200 dark:border-slate-700/50 rounded-lg h-full flex flex-col relative overflow-hidden shadow-lg dark:shadow-[0_0_25px_rgba(0,0,0,0.5)] transition-colors duration-300">
+        <div className="bg-white/80 dark:bg-slate-950/90 backdrop-blur-xl border border-white/60 dark:border-slate-700/50 rounded-xl h-full flex flex-col relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_0_25px_rgba(0,0,0,0.5)] transition-colors duration-300">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none"></div>
 
             <div className="flex flex-col lg:flex-row h-full relative z-10">
@@ -243,7 +243,7 @@ export const PricePredictionWidget: React.FC<PricePredictionWidgetProps> = ({
                 </div>
 
                 {/* 2. The Quotation Preview (Right - 40%) */}
-                <div className="w-full lg:w-[40%] bg-slate-50 dark:bg-slate-900/50 p-8 flex flex-col relative">
+                <div className="w-full lg:w-[40%] bg-slate-50/50 dark:bg-slate-900/50 p-8 flex flex-col relative">
                     <div className="absolute top-0 right-0 p-4 opacity-50">
                         <FileText className="w-24 h-24 text-slate-300 dark:text-slate-800" />
                     </div>
