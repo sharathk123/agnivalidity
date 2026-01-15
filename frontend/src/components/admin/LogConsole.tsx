@@ -1,7 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 
+interface LogEntry {
+    timestamp: string;
+    level: string;
+    source: string;
+    message: string;
+}
+
 interface LogConsoleProps {
-    logs: any[];
+    logs: LogEntry[];
 }
 
 export const LogConsole: React.FC<LogConsoleProps> = ({ logs }) => {

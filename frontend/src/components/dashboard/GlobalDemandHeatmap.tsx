@@ -127,73 +127,7 @@ const DemandTooltip: React.FC<{ orb: DemandOrb }> = ({ orb }) => (
     </div>
 );
 
-const VerifiedBuyerList: React.FC = () => {
-    const [buyers, setBuyers] = useState<{ id: string, name: string, risk: 'SAFE' | 'HIGH_RISK' | 'CHECKING' }[]>([
-        { id: 'BUY-001', name: 'Global Logistics GmbH', risk: 'CHECKING' },
-        { id: 'BUY-002', name: 'Oceanic Trade Ltd', risk: 'CHECKING' },
-        { id: 'BUY-003', name: 'North Sea Import Co', risk: 'CHECKING' },
-        { id: 'BUY-999', name: 'Pyongyang Heavy Industries', risk: 'CHECKING' }
-    ]);
 
-    useEffect(() => {
-        const checkSanctions = async () => {
-            try {
-                const res = await fetch('/data/security/denied_entity_index.json');
-                const deniedList: string[] = await res.json();
-
-                setBuyers(prev => prev.map(buyer => ({
-                    ...buyer,
-                    risk: deniedList.includes(buyer.id) ? 'HIGH_RISK' : 'SAFE'
-                })));
-            } catch (error) {
-                console.error("Sanction Check Failed", error);
-            }
-        };
-
-        // Simulating network delay for "Scanning" effect
-        setTimeout(checkSanctions, 1500);
-    }, []);
-
-    return (
-        <div className="space-y-3">
-            {buyers.map((buyer) => (
-                <div key={buyer.id} className="group relative bg-slate-900/40 border border-slate-800 rounded p-3 flex justify-between items-center hover:bg-slate-800/40 transition-colors">
-                    <div>
-                        <div className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">{buyer.name}</div>
-                        <div className="text-[9px] font-mono text-slate-500">{buyer.id}</div>
-                    </div>
-
-                    {buyer.risk === 'CHECKING' ? (
-                        <div className="flex items-center gap-1.5 text-slate-500 bg-slate-500/10 px-2 py-1 rounded border border-slate-500/20">
-                            <Activity className="w-3 h-3 animate-spin" />
-                            <span className="text-[9px] font-black uppercase">Scanning</span>
-                        </div>
-                    ) : buyer.risk === 'SAFE' ? (
-                        <div className="flex items-center gap-1.5 text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 animate-in fade-in duration-500">
-                            <ShieldCheck className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase">Verified</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-1.5 text-rose-500 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 animate-pulse">
-                            <ShieldAlert className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase">Sanctioned</span>
-                        </div>
-                    )}
-
-                    {/* Block Overlay for Risk */}
-                    {buyer.risk === 'HIGH_RISK' && (
-                        <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-[1px] flex items-center justify-center rounded border border-rose-500/50 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-not-allowed">
-                            <span className="text-[9px] font-black text-rose-500 uppercase flex items-center gap-1">
-                                <ShieldAlert className="w-3 h-3" />
-                                Contact Blocked
-                            </span>
-                        </div>
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-};
 
 // --- Main Component ---
 
@@ -304,7 +238,7 @@ export const GlobalDemandHeatmap: React.FC = () => {
                                             { id: 'BUY-001', name: 'Global Logistics GmbH', risk: 'SAFE' },
                                             { id: 'BUY-002', name: 'Oceanic Trade Ltd', risk: 'SAFE' },
                                             { id: 'BUY-003', name: 'North Sea Import Co', risk: 'HIGH_RISK' }
-                                        ].map((buyer, i) => (
+                                        ].map((buyer) => (
                                             <div key={buyer.id} className="group relative bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                                 <div>
                                                     <div className="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{buyer.name}</div>

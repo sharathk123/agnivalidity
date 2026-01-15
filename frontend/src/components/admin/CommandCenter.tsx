@@ -22,7 +22,16 @@ interface DashboardStatus {
 
 const API_BASE = 'http://localhost:8000/admin';
 
-const MetricCard = ({ label, value, trend, highlight, isError, onClick }: any) => {
+interface MetricCardProps {
+    label: string;
+    value: string | number;
+    trend?: string;
+    highlight?: boolean;
+    isError?: boolean;
+    onClick?: () => void;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, highlight, isError, onClick }) => {
     // Dynamic shadow color based on status
     const glowColor = isError ? 'hover:shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:border-rose-500/50' :
         highlight ? 'hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:border-indigo-500/50' :
@@ -59,10 +68,34 @@ const MetricCard = ({ label, value, trend, highlight, isError, onClick }: any) =
     );
 };
 
+interface IngestionSource {
+    id: number;
+    source_name: string;
+    source_type: string;
+    frequency: string;
+    last_run_status: 'SUCCESS' | 'FAILED' | 'RUNNING' | 'IDLE';
+    ingestion_strategy: string;
+    records_updated: number;
+    is_active: boolean;
+    last_run_at: string | null;
+    performance_stats?: {
+        success_rate: number;
+        cleaned_lines: number;
+        error_count: number;
+    };
+}
+
+interface LogEntry {
+    timestamp: string;
+    level: string;
+    source: string;
+    message: string;
+}
+
 export const AdminCommandCenter: React.FC = () => {
     const [status, setStatus] = useState<DashboardStatus | null>(null);
-    const [sources, setSources] = useState<any[]>([]);
-    const [logs, setLogs] = useState<any[]>([]);
+    const [sources, setSources] = useState<IngestionSource[]>([]);
+    const [logs, setLogs] = useState<LogEntry[]>([]);
     const [systemStatus, setSystemStatus] = useState<SystemStatus>('ACTIVE');
     const [resetIndex, setResetIndex] = useState<number>(-1);
 

@@ -1,0 +1,78 @@
+
+> frontend@0.0.0 lint
+> eslint .
+
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/ProductInsightView.tsx
+   75:8  warning  React Hook useEffect has a missing dependency: 'analyzeProduct'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  130:8  warning  React Hook useEffect has a missing dependency: 'insight'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/admin/CommandCenter.tsx
+   25:75  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   64:44  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   65:38  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  115:8   warning  React Hook useEffect has a missing dependency: 'systemStatus'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/admin/LogConsole.tsx
+  4:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/admin/QuarantineTerminal.tsx
+  14:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/GlobalDemandHeatmap.tsx
+  130:7   error  'VerifiedBuyerList' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  307:55  error  'i' is defined but never used                           @typescript-eslint/no-unused-vars
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/GlobalHeatmap.tsx
+   5:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  75:63  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/GlobalMarketPulse.tsx
+  73:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/IncentiveEngine.tsx
+  5:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/IntelligenceDashboard.tsx
+   26:92  error    Unexpected any. Specify a different type                                                                    @typescript-eslint/no-explicit-any
+   32:44  error    Unexpected any. Specify a different type                                                                    @typescript-eslint/no-explicit-any
+   69:23  error    Unexpected any. Specify a different type                                                                    @typescript-eslint/no-explicit-any
+  140:8   warning  React Hook useEffect has a missing dependency: 'insight'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/MarketTrends.tsx
+  144:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/ODOPSourcingTerminal.tsx
+   36:22  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   46:44  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  236:41  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/dashboard/PricePredictionWidget.tsx
+  13:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/ui/CommandPalette.tsx
+   4:18  error  'Command' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   4:55  error  'Settings' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  90:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/components/ui/CommandPalette.tsx:90:13
+  88 |         if (isOpen) {
+  89 |             setTimeout(() => inputRef.current?.focus(), 50);
+> 90 |             setSearch('');
+     |             ^^^^^^^^^ Avoid calling setState() directly within an effect
+  91 |             setActiveIndex(0);
+  92 |         }
+  93 |     }, [isOpen]);  react-hooks/set-state-in-effect
+
+/Users/sharathbabukurva/sandbox/eximinsights/frontend/src/contexts/ThemeContext.tsx
+  53:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 28 problems (24 errors, 4 warnings)
+

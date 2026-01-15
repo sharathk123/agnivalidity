@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Command, Monitor, TrendingUp, Globe, Settings, Sun, Moon, Sidebar, Link, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Search, Monitor, TrendingUp, Globe, Sun, Moon, Sidebar, Link, ArrowRight, ShieldAlert } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface CommandItem {
@@ -52,7 +52,14 @@ export const CommandPalette: React.FC = () => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
-                setIsOpen(prev => !prev);
+                if (!isOpen) {
+                    // Reset state before opening
+                    setSearch('');
+                    setActiveIndex(0);
+                    setIsOpen(true);
+                } else {
+                    setIsOpen(false);
+                }
             }
 
             if (!isOpen) return;
@@ -74,7 +81,6 @@ export const CommandPalette: React.FC = () => {
                 if (item) {
                     item.action();
                     setIsOpen(false);
-                    setSearch('');
                 }
             }
         };
@@ -87,8 +93,6 @@ export const CommandPalette: React.FC = () => {
     useEffect(() => {
         if (isOpen) {
             setTimeout(() => inputRef.current?.focus(), 50);
-            setSearch('');
-            setActiveIndex(0);
         }
     }, [isOpen]);
 

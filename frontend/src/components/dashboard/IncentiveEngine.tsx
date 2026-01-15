@@ -1,8 +1,19 @@
 import React from 'react';
 
+interface InsightMetrics {
+    rodtep_benefit: number;
+    dbk_benefit: number;
+    gst_benefit: number;
+    total_incentives: number;
+}
+
+interface InsightData {
+    metrics: InsightMetrics;
+}
+
 interface IncentiveEngineProps {
     baseCost: number;
-    insight: any;
+    insight: InsightData;
 }
 
 export const IncentiveEngine: React.FC<IncentiveEngineProps> = ({ baseCost, insight }) => {
