@@ -315,38 +315,38 @@ export const ODOPSourcingTerminal: React.FC = () => {
                     {/* Inlay Popover - Attached to Cursor or Fixed */}
                     {activeData && (
                         <div className="absolute top-24 right-6 w-72 pointer-events-none z-20 animate-in slide-in-from-right-4 fade-in duration-300">
-                            <div className="bg-slate-900/80 border border-slate-700/80 backdrop-blur-xl p-5 rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.6)] relative overflow-hidden">
+                            <div className="bg-white/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 backdrop-blur-xl p-5 rounded-xl shadow-xl dark:shadow-[0_0_40px_rgba(0,0,0,0.6)] relative overflow-hidden">
                                 {/* Glow Effect */}
                                 <div className={`absolute top-0 right-0 w-24 h-24 blur-[60px] opacity-40 ${activeData.gi ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
 
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-start mb-3">
                                         <div className="flex flex-col">
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{activeData.state}</span>
-                                            <h2 className="text-xl font-bold text-white font-display uppercase tracking-tight">{activeData.name}</h2>
+                                            <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">{activeData.state}</span>
+                                            <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display uppercase tracking-tight">{activeData.name}</h2>
                                         </div>
-                                        {activeData.gi && <BadgeCheck className="w-6 h-6 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />}
+                                        {activeData.gi && <BadgeCheck className="w-6 h-6 text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />}
                                     </div>
 
                                     <div className="space-y-3">
-                                        <div className="bg-slate-950/50 border border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
+                                        <div className="bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase">Product</span>
-                                            <span className="text-xs font-mono font-bold text-indigo-300 truncate max-w-[120px]">{activeData.product}</span>
+                                            <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-300 truncate max-w-[120px]">{activeData.product}</span>
                                         </div>
 
                                         <div className="flex gap-2">
-                                            <div className="flex-1 bg-slate-950/50 border border-slate-800 p-2.5 rounded-lg">
+                                            <div className="flex-1 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 p-2.5 rounded-lg">
                                                 <div className="text-[9px] font-bold text-slate-500 uppercase mb-1">Local Rate</div>
-                                                <div className="text-sm font-mono font-bold text-white">₹{activeData.localPrice}</div>
+                                                <div className="text-sm font-mono font-bold text-slate-900 dark:text-white">₹{activeData.localPrice}</div>
                                             </div>
-                                            <div className="flex-1 bg-slate-950/50 border border-slate-800 p-2.5 rounded-lg border-l-2 border-l-emerald-500/50">
+                                            <div className="flex-1 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 p-2.5 rounded-lg border-l-2 border-l-emerald-500/50">
                                                 <div className="text-[9px] font-bold text-slate-500 uppercase mb-1">Prem. Score</div>
-                                                <div className="text-sm font-mono font-bold text-emerald-400">{activeData.premiumPotential}/100</div>
+                                                <div className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">{activeData.premiumPotential}/100</div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center gap-2 text-[10px] text-slate-400 italic">
+                                    <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/50 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 italic">
                                         <MousePointer2 className="w-3 h-3" />
                                         <span>Click region to lock/unlock selection</span>
                                     </div>
@@ -385,7 +385,7 @@ export const ODOPSourcingTerminal: React.FC = () => {
                                     <label className="text-[9px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest block mb-1">Status</label>
                                     <div className="flex flex-col gap-2">
                                         {activeData.gi ? (
-                                            <div className="flex items-center gap-1.5 text-emerald-400">
+                                            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                                 <BadgeCheck className="w-4 h-4" />
                                                 <span className="text-[9px] font-bold uppercase">GI Confirmed</span>
                                             </div>
@@ -396,7 +396,7 @@ export const ODOPSourcingTerminal: React.FC = () => {
                                             </div>
                                         )}
                                         {activeData.deh && (
-                                            <div className="flex items-center gap-1.5 text-amber-400">
+                                            <div className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400">
                                                 <MapPin className="w-4 h-4" />
                                                 <span className="text-[9px] font-bold uppercase">Export Hub</span>
                                             </div>
@@ -409,7 +409,7 @@ export const ODOPSourcingTerminal: React.FC = () => {
                             <div className="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded">
                                 <div className="flex justify-between items-center mb-2">
                                     <label className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest">Premium Potential</label>
-                                    <span className={`text-xs font-bold ${activeData.premiumPotential > 80 ? 'text-emerald-500 dark:text-emerald-400' : activeData.premiumPotential > 50 ? 'text-amber-500 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                    <span className={`text-xs font-bold ${activeData.premiumPotential > 80 ? 'text-emerald-600 dark:text-emerald-400' : activeData.premiumPotential > 50 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                         {activeData.premiumPotential}/100
                                     </span>
                                 </div>
@@ -453,7 +453,7 @@ export const ODOPSourcingTerminal: React.FC = () => {
 
                             {/* Fee Advice */}
                             {!activeData.gi && (
-                                <div className="mt-2 text-[9px] font-mono text-amber-500/80 bg-amber-500/5 p-2 rounded border border-amber-500/10">
+                                <div className="mt-2 text-[9px] font-mono text-amber-600 dark:text-amber-500/80 bg-amber-50 dark:bg-amber-500/5 p-2 rounded border border-amber-200 dark:border-amber-500/10">
                                     * GI REGISTRATION FEE REDUCED TO ₹1,000. RECOMMENDED.
                                 </div>
                             )}

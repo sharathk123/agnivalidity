@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Globe, TrendingUp, Ship, RefreshCw, Layers, Box, Activity, Award, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Globe, RefreshCw, Award, TrendingUp, ArrowUpRight, ShieldCheck, ShieldAlert, Activity, Zap, Ship } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import { ftaMarkets } from '../../data/ftaData';
@@ -43,9 +43,11 @@ const MetricCard: React.FC<{ label: string; value: string | number; icon: React.
 
 const ExpansionMarketCard: React.FC<{ market: ExpansionMarket; index: number; isFTA?: boolean }> = React.memo(({ market, index, isFTA }) => (
     <div
-        className={`p-4 bg-white dark:bg-slate-950/50 border rounded group transition-all animate-in fade-in slide-in-from-right-2 duration-300 ${isFTA ? 'border-amber-400 dark:border-amber-500/20 hover:border-amber-500' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/30'
-            }`}
-        style={{ animationDelay: `${index * 100}ms` }}
+        className={`p-3 rounded-lg border transition-all relative group cursor-pointer ${isFTA
+            ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-200 dark:border-amber-500/20 hover:bg-amber-100/50 dark:hover:bg-amber-500/10 shadow-sm hover:shadow-md dark:shadow-none'
+            : 'bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm hover:shadow-md dark:shadow-none'
+            } `}
+        style={{ animationDelay: `${index * 100} ms` }}
     >
         <div className="flex justify-between items-start mb-2">
             <div className="flex flex-col">
@@ -67,7 +69,7 @@ const FTAListItem: React.FC<{ market: FTAData; onClick: () => void; index: numbe
     <div
         onClick={onClick}
         className="p-3 bg-white dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800/50 hover:border-amber-400 dark:hover:border-amber-500/50 hover:bg-amber-50 dark:hover:bg-slate-900/50 rounded cursor-pointer group transition-all duration-300 animate-in fade-in slide-in-from-right-2"
-        style={{ animationDelay: `${index * 100}ms` }}
+        style={{ animationDelay: `${index * 100} ms` }}
     >
         <div className="flex justify-between items-center mb-1">
             <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors font-display flex items-center gap-2">
@@ -139,6 +141,7 @@ export const GlobalDemandHeatmap: React.FC = () => {
     const [lastSync, setLastSync] = useState<string>('00:00:00');
     const [hoveredOrb, setHoveredOrb] = useState<number | null>(null);
     const [focusedFTA, setFocusedFTA] = useState<FTAData | null>(null);
+    const [hoveredFTA, setHoveredFTA] = useState<string | null>(null);
 
     // Dynamic map tile URL based on theme
     const tileUrl = theme === 'light'
@@ -182,26 +185,26 @@ export const GlobalDemandHeatmap: React.FC = () => {
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none z-0"></div>
 
             {/* Sidebar Ticker (25%) */}
-            <div className="w-1/4 border-r border-slate-200 dark:border-slate-800/50 bg-white dark:bg-slate-900/40 backdrop-blur-sm p-6 flex flex-col z-10 relative transition-colors duration-300">
+            <div className="w-1/4 border-r border-white/50 dark:border-slate-800/50 bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-md p-6 flex flex-col z-10 relative transition-colors duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none">
                 <div className="mb-8 flex justify-between items-start">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-indigo-100 dark:bg-indigo-500/10 rounded border border-indigo-200 dark:border-indigo-500/20">
+                            <div className="p-2 bg-indigo-100 dark:bg-indigo-500/10 rounded border border-indigo-200 dark:border-indigo-500/20 shadow-sm dark:shadow-none">
                                 <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest font-display">Agni Intelligence</h3>
                         </div>
                         <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest pl-1">
-                            {loading ? "Establishing Uplink..." : `Last Sync: ${lastSync}`}
+                            {loading ? "Establishing Uplink..." : `Last Sync: ${lastSync} `}
                         </div>
                     </div>
                     <button
                         onClick={fetchDemand}
                         disabled={loading}
-                        className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700/50 p-1.5 rounded-full border border-slate-200 dark:border-slate-700/50 transition-all active:scale-95 disabled:opacity-50"
+                        className="bg-white/80 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700/50 p-1.5 rounded-full border border-slate-200 dark:border-slate-700/50 transition-all active:scale-95 disabled:opacity-50 shadow-sm dark:shadow-none"
                         title="Sync Now"
                     >
-                        <RefreshCw className={`w-3 h-3 text-indigo-400 ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-3 h-3 text-indigo-400 ${loading ? 'animate-spin' : ''} `} />
                     </button>
                 </div>
 
@@ -239,19 +242,19 @@ export const GlobalDemandHeatmap: React.FC = () => {
                                             { id: 'BUY-002', name: 'Oceanic Trade Ltd', risk: 'SAFE' },
                                             { id: 'BUY-003', name: 'North Sea Import Co', risk: 'HIGH_RISK' }
                                         ].map((buyer) => (
-                                            <div key={buyer.id} className="group relative bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                            <div key={buyer.id} className="group relative bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all shadow-sm hover:shadow-md dark:shadow-none">
                                                 <div>
                                                     <div className="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{buyer.name}</div>
                                                     <div className="text-[9px] font-mono text-slate-500 dark:text-slate-500">{buyer.id}</div>
                                                 </div>
 
                                                 {buyer.risk === 'SAFE' ? (
-                                                    <div className="flex items-center gap-1.5 text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">
+                                                    <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded border border-emerald-200 dark:border-emerald-500/20">
                                                         <ShieldCheck className="w-3 h-3" />
                                                         <span className="text-[9px] font-black uppercase">Verified</span>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex items-center gap-1.5 text-rose-500 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 animate-pulse">
+                                                    <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded border border-rose-200 dark:border-rose-500/20 animate-pulse">
                                                         <ShieldAlert className="w-3 h-3" />
                                                         <span className="text-[9px] font-black uppercase">Sanctioned</span>
                                                     </div>
@@ -259,8 +262,8 @@ export const GlobalDemandHeatmap: React.FC = () => {
 
                                                 {/* Block Overlay for Risk */}
                                                 {buyer.risk === 'HIGH_RISK' && (
-                                                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-[1px] flex items-center justify-center rounded border border-rose-500/50 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-not-allowed">
-                                                        <span className="text-[9px] font-black text-rose-500 uppercase flex items-center gap-1">
+                                                    <div className="absolute inset-0 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-[1px] flex items-center justify-center rounded border border-rose-500/50 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-not-allowed">
+                                                        <span className="text-[9px] font-black text-rose-600 dark:text-rose-500 uppercase flex items-center gap-1">
                                                             <ShieldAlert className="w-3 h-3" />
                                                             Contact Blocked
                                                         </span>
@@ -297,7 +300,7 @@ export const GlobalDemandHeatmap: React.FC = () => {
 
                                 {markets.length === 0 && !loading && (
                                     <div className="text-[10px] text-slate-500 dark:text-slate-500 font-mono text-center py-4 border border-dashed border-slate-300 dark:border-slate-800 rounded">
-                                        NO UPWARD TRENDS DETECTED
+                                        No trending markets detected.
                                     </div>
                                 )}
 
@@ -332,77 +335,189 @@ export const GlobalDemandHeatmap: React.FC = () => {
                 </div>
             </div>
 
-            {/* Map Engine (75%) */}
-            <div className={`w-3/4 relative z-0 ${theme === 'light' ? 'bg-slate-100' : 'bg-slate-950'}`}>
-                <MapContainer center={[20, 0]} zoom={2.5} style={{ height: '100%', width: '100%', background: theme === 'light' ? '#f1f5f9' : '#020617' }} zoomControl={false} attributionControl={false}>
-                    <TileLayer key={theme} url={tileUrl} />
+            {/* Main Content Area (75%) */}
+            <div className="w-3/4 h-full relative z-0">
 
-                    {/* Standard Demand Orbs */}
-                    {orbs.map(orb => (
-                        <React.Fragment key={orb.id}>
-                            <CircleMarker
-                                center={[orb.lat, orb.lng]}
-                                eventHandlers={{
-                                    mouseover: () => setHoveredOrb(orb.id),
-                                    mouseout: () => setHoveredOrb(null),
-                                }}
-                                pathOptions={{
-                                    color: 'transparent',
-                                    fillColor: '#10b981',
-                                    fillOpacity: 0.8,
-                                    weight: 0,
-                                }}
-                                radius={7}
-                                className="animate-glow cursor-pointer"
-                            >
-                                <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={hoveredOrb === orb.id} className="glass-tooltip">
-                                    <DemandTooltip orb={orb} />
-                                </Tooltip>
-                            </CircleMarker>
-                        </React.Fragment>
-                    ))}
-
-                    {/* FTA Special Markers */}
-                    {ftaMarkets.map(market => (
-                        <CircleMarker
-                            key={`fta-${market.country}`}
-                            center={[market.lat, market.lng]}
-                            eventHandlers={{
-                                click: () => setFocusedFTA(market),
-                            }}
-                            pathOptions={{
-                                color: 'transparent',
-                                fillColor: '#fbbf24', // Gold-400
-                                fillOpacity: 1,
-                                weight: 0,
-                            }}
-                            radius={7}
-                            className="animate-pulse cursor-pointer"
-                        >
-                            <Tooltip direction="top" offset={[0, -10]} opacity={1} className="glass-tooltip" sticky>
-                                <FTASavingsOverlay market={market} />
-                            </Tooltip>
-                        </CircleMarker>
-                    ))}
-                </MapContainer>
-
-                {/* 📊 Metrics HUD Overlay */}
-                {!loading && metrics.totalOrbs > 0 && (
-                    <div className="absolute bottom-6 left-6 z-[1000] flex gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700 pointer-events-none">
-                        <MetricCard label="Demand Hubs" value={metrics.totalOrbs} icon={<Layers className="w-3 h-3" />} />
-                        <MetricCard label="Market Products" value={metrics.uniqueProducts} icon={<Box className="w-3 h-3" />} />
-                        <MetricCard label="Avg Growth" value={`+${metrics.avgGrowth}%`} icon={<Activity className="w-3 h-3" />} />
+                <div className="absolute top-6 left-6 z-[10] flex justify-between w-[calc(100%-48px)] pointer-events-none">
+                    <div>
+                        <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest font-display drop-shadow-sm">Global Demand Matrix</h3>
+                        <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-1">
+                            {orbs.length} Active Opportunities • Live
+                        </div>
                     </div>
+                </div>
+
+                {!orbs.length && !loading ? (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-950/20">
+                        <div className="flex flex-col items-center gap-4">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Awaiting Uplink...</span>
+                        </div>
+                    </div>
+                ) : (
+                    <MapContainer
+                        center={[20, 0]}
+                        zoom={2}
+                        minZoom={2}
+                        maxZoom={6}
+                        className="w-full h-full bg-slate-100 dark:bg-[#0B1121]"
+                        zoomControl={false}
+                        attributionControl={false}
+                        style={{ background: 'transparent' }}
+                    >
+                        {/* Dark Mode Tiles - CartoDB Dark Matter */}
+                        <TileLayer
+                            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                            className="dark:block hidden"
+                            opacity={0.6}
+                        />
+                        {/* Light Mode Tiles - CartoDB Positron (Clean/White) */}
+                        <TileLayer
+                            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                            className="dark:hidden block"
+                            opacity={0.8}
+                        />
+
+                        {/* Standard Demand Orbs - ODOP Blinker Style */}
+                        {orbs.map(orb => (
+                            <React.Fragment key={orb.id}>
+                                {/* 1. Outer Pulse (The "Atmosphere") - Decorative Only */}
+                                <CircleMarker
+                                    center={[orb.lat, orb.lng]}
+                                    pathOptions={{
+                                        color: 'transparent',
+                                        fillColor: '#10b981',
+                                        fillOpacity: 0.3,
+                                        weight: 0,
+                                    }}
+                                    radius={11}
+                                    className="animate-pulse-slow pointer-events-none"
+                                    interactive={false}
+                                />
+
+                                {/* 3. Active Ping (The "Sonar") - Decorative Overlay */}
+                                {hoveredOrb === orb.id && (
+                                    <CircleMarker
+                                        center={[orb.lat, orb.lng]}
+                                        pathOptions={{
+                                            color: '#10b981',
+                                            weight: 1.5,
+                                            fillColor: 'transparent',
+                                            opacity: 1
+                                        }}
+                                        radius={18}
+                                        className="animate-ping pointer-events-none"
+                                        interactive={false}
+                                    />
+                                )}
+
+                                {/* 2. Center Node (The "Dot") - Interactive Target */}
+                                <CircleMarker
+                                    center={[orb.lat, orb.lng]}
+                                    eventHandlers={{
+                                        mouseover: () => setHoveredOrb(orb.id),
+                                        mouseout: () => setHoveredOrb(null),
+                                    }}
+                                    pathOptions={{
+                                        color: '#ffffff',
+                                        weight: 1.5,
+                                        fillColor: '#10b981',
+                                        fillOpacity: 1,
+                                    }}
+                                    radius={6.5}
+                                    className="animate-glow cursor-pointer"
+                                >
+                                    <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={hoveredOrb === orb.id} className="glass-tooltip">
+                                        <DemandTooltip orb={orb} />
+                                    </Tooltip>
+                                </CircleMarker>
+                            </React.Fragment>
+                        ))}
+
+                        {/* FTA Special Markers - ODOP Blinker Style (Golden) */}
+                        {ftaMarkets.map(market => (
+                            <React.Fragment key={`fta - ${market.country} `}>
+                                {/* 1. Outer Pulse (The "Atmosphere") */}
+                                <CircleMarker
+                                    center={[market.lat, market.lng]}
+                                    pathOptions={{
+                                        color: 'transparent',
+                                        fillColor: '#f59e0b', // Amber-500
+                                        fillOpacity: 0.3,
+                                        weight: 0,
+                                    }}
+                                    radius={11}
+                                    className="animate-pulse-slow pointer-events-none"
+                                    interactive={false}
+                                />
+
+                                {/* 3. Active Ping (The "Sonar") */}
+                                {hoveredFTA === market.country && (
+                                    <CircleMarker
+                                        center={[market.lat, market.lng]}
+                                        pathOptions={{
+                                            color: '#f59e0b', // Amber-500
+                                            weight: 1.5,
+                                            fillColor: 'transparent',
+                                            opacity: 1
+                                        }}
+                                        radius={18}
+                                        className="animate-ping pointer-events-none"
+                                        interactive={false}
+                                    />
+                                )}
+
+                                {/* 2. Center Node (The "Dot") */}
+                                <CircleMarker
+                                    center={[market.lat, market.lng]}
+                                    eventHandlers={{
+                                        click: () => setFocusedFTA(market),
+                                        mouseover: () => setHoveredFTA(market.country),
+                                        mouseout: () => setHoveredFTA(null),
+                                    }}
+                                    pathOptions={{
+                                        color: '#ffffff',
+                                        fillColor: '#f59e0b', // Amber-500
+                                        fillOpacity: 1,
+                                        weight: 1.5,
+                                    }}
+                                    radius={6.5}
+                                    className="animate-glow cursor-pointer"
+                                >
+                                    <Tooltip direction="top" offset={[0, -10]} opacity={1} className="glass-tooltip" sticky>
+                                        <FTASavingsOverlay market={market} />
+                                    </Tooltip>
+                                </CircleMarker>
+                            </React.Fragment>
+                        ))}
+                    </MapContainer>
                 )}
 
-                {/* Status Overlay */}
-                <div className="absolute bottom-6 right-6 z-[1000] pointer-events-none flex flex-col items-end gap-1">
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-amber-500/80 bg-slate-950/80 px-2 py-1 rounded backdrop-blur border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
-                        <Award className="w-3 h-3 animate-spin duration-3000" />
-                        <span>FTA ADVANTAGE MODE: ACTIVE</span>
+                {/* Bottom Panel: Strategic FTA Partners */}
+                <div className="absolute bottom-0 left-0 w-full bg-white/80 dark:bg-slate-900/80 border-t border-white/50 dark:border-slate-800/50 backdrop-blur-md z-[20] px-6 py-4 flex items-center justify-between shadow-[0_-4px_24px_rgba(0,0,0,0.02)] dark:shadow-none">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 bg-amber-100 dark:bg-amber-500/10 rounded border border-amber-200 dark:border-amber-500/20 shadow-sm dark:shadow-none">
+                            <Zap className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest font-display">Strategic FTA Partners</h4>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-0.5 flex gap-2">
+                                <span>Duty Free Access Available</span>
+                                <span className="text-emerald-500 font-bold">• Active</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest bg-slate-950/50 px-2 py-1 rounded backdrop-blur">
-                        BUILD_VERSION: 2.0.26_HUD
+
+                    <div className="flex gap-3">
+                        {ftaMarkets.map(market => (
+                            <button
+                                key={market.country}
+                                onClick={() => setFocusedFTA(market)}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded hover:border-amber-400 dark:hover:border-amber-500/50 transition-all group shadow-sm hover:shadow-md dark:shadow-none"
+                            >
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:text-amber-600 dark:group-hover:text-amber-400">{market.country}</span>
+                                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 rounded border border-emerald-100 dark:border-emerald-500/20">0% Duty</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>

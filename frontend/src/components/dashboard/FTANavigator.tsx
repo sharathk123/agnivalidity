@@ -156,7 +156,7 @@ export const FTANavigator: React.FC<FTANavigatorProps> = ({ activeMarket }) => {
             <button
                 onClick={handleGenerateCoO}
                 disabled={isGenerating}
-                className={`mt-2 w-full py-4 rounded-lg font-mono font-black text-[11px] uppercase tracking-widest transition-all overflow-hidden relative group ${isSuccess ? 'bg-emerald-600' : 'bg-slate-800 hover:bg-slate-700 border border-slate-700'
+                className={`mt-2 w-full py-4 rounded-lg font-mono font-black text-[11px] uppercase tracking-widest transition-all overflow-hidden relative group text-slate-100 ${isSuccess ? 'bg-emerald-600' : 'bg-slate-800 hover:bg-slate-700 border border-slate-700'
                     }`}
             >
                 <AnimatePresence mode="wait">
