@@ -31,13 +31,13 @@ const MetricCard = ({ label, value, trend, highlight, isError, onClick }: any) =
     return (
         <div
             onClick={onClick}
-            className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 p-8 rounded-lg relative overflow-hidden group shadow-sm dark:shadow-none transition-all duration-300 ${glowColor} ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : 'hover:scale-[1.01]'}`}
+            className={`bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 p-8 rounded-lg relative overflow-hidden group shadow-sm dark:shadow-none transition-all duration-300 ${glowColor} ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : 'hover:scale-[1.01]'}`}
         >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/0 to-slate-100/50 dark:from-white/0 dark:to-white/5 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>
 
             <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-            <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 relative z-10 flex items-center justify-between">
+            <div className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-3 relative z-10 flex items-center justify-between">
                 {label}
                 <div className={`w-1.5 h-1.5 rounded-full ${isError ? 'bg-rose-500' : 'bg-emerald-500'} opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_5px_currentColor]`}></div>
             </div>

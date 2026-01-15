@@ -4,14 +4,21 @@
 
 /* Semantic Theme Variables */
 :root {
-  --bg-app: #f8fafc;           /* Light: slate-50 */
-  --bg-card: #ffffff;           /* Light: white */
-  --text-primary: #0f172a;      /* Light: slate-900 */
-  --text-secondary: #64748b;    /* Light: slate-500 */
-  --text-muted: #94a3b8;        /* Light: slate-400 */
-  --border-default: #e2e8f0;    /* Light: slate-200 */
-  --border-subtle: #f1f5f9;     /* Light: slate-100 */
-  
+  --bg-app: #f8fafc;
+  /* Light: slate-50 */
+  --bg-card: #ffffff;
+  /* Light: white */
+  --text-primary: #020617;
+  /* Light: slate-950 (High Contrast) */
+  --text-secondary: #475569;
+  /* Light: slate-600 (High Contrast) */
+  --text-muted: #94a3b8;
+  /* Light: slate-400 */
+  --border-default: #cbd5e1;
+  /* Light: slate-300 (High Contrast) */
+  --border-subtle: #f1f5f9;
+  /* Light: slate-100 */
+
   /* Technical panels - ALWAYS dark */
   --tech-panel-bg: #0f172a;
   --tech-panel-border: #1e293b;
@@ -19,13 +26,20 @@
 }
 
 .dark {
-  --bg-app: #020617;            /* Dark: slate-950 */
-  --bg-card: #0f172a;           /* Dark: slate-900 */
-  --text-primary: #f1f5f9;      /* Dark: slate-100 */
-  --text-secondary: #94a3b8;    /* Dark: slate-400 */
-  --text-muted: #64748b;        /* Dark: slate-500 */
-  --border-default: #1e293b;    /* Dark: slate-800 */
-  --border-subtle: #334155;     /* Dark: slate-700 */
+  --bg-app: #020617;
+  /* Dark: slate-950 */
+  --bg-card: #0f172a;
+  /* Dark: slate-900 */
+  --text-primary: #ffffff;
+  /* Dark: White (High Contrast) */
+  --text-secondary: #cbd5e1;
+  /* Dark: slate-300 (High Contrast) */
+  --text-muted: #64748b;
+  /* Dark: slate-500 */
+  --border-default: #334155;
+  /* Dark: slate-700 (High Contrast) */
+  --border-subtle: #1e293b;
+  /* Dark: slate-800 */
 }
 
 body {
@@ -64,7 +78,7 @@ h6 {
 }
 
 .sidebar-link-inactive {
-  @apply text-slate-500 hover:bg-slate-800 hover:text-slate-200;
+  @apply text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white;
 }
 
 /* Custom transitions */
@@ -73,10 +87,13 @@ h6 {
 }
 
 @keyframes pulse-slow {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.15;
     transform: scale(0.98);
   }
+
   50% {
     opacity: 0.4;
     transform: scale(1.1);
@@ -88,9 +105,12 @@ h6 {
 }
 
 @keyframes glow {
-  0%, 100% {
+
+  0%,
+  100% {
     filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.4));
   }
+
   50% {
     filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.7));
   }
@@ -125,13 +145,16 @@ h6 {
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 10px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }

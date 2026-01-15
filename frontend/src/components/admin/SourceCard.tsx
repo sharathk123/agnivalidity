@@ -40,7 +40,7 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, onRun, onStop, d
                     'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]';
 
     return (
-        <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-lg p-6 group transition-all duration-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] dark:hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] hover:border-indigo-400/50 dark:hover:border-indigo-500/50 hover:scale-[1.01] relative overflow-hidden ${!source.is_active ? 'opacity-60 grayscale' : ''}`}>
+        <div className={`bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 rounded-lg p-6 group transition-all duration-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] dark:hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] hover:border-indigo-400/50 dark:hover:border-indigo-500/50 hover:scale-[1.01] relative overflow-hidden ${!source.is_active ? 'opacity-60 grayscale' : ''}`}>
 
             {/* Background Gradient for Active State */}
             {source.is_active && <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>}
@@ -55,7 +55,7 @@ export const SourceCard: React.FC<SourceCardProps> = ({ source, onRun, onStop, d
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors uppercase font-display">{source.source_name.replace(/_/g, ' ')}</h4>
-                        <div className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-1 font-mono">{source.ingestion_strategy}</div>
+                        <div className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest mt-1 font-mono">{source.ingestion_strategy}</div>
                     </div>
                 </div>
                 <div className="flex gap-2">
