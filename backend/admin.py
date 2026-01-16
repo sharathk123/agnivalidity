@@ -211,7 +211,11 @@ async def get_system_settings(db: Session = Depends(get_db)):
     
     settings = {}
     for row in results:
-        settings[row.setting_key] = {"value": row.setting_value, "description": row.description}
+        settings[row.setting_key] = {
+            "value": row.setting_value, 
+            "description": row.description,
+            "updated_at": row.updated_at
+        }
     
     return {"settings": settings}
 

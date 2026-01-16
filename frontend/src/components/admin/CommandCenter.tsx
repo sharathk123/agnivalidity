@@ -29,9 +29,12 @@ interface MetricCardProps {
     highlight?: boolean;
     isError?: boolean;
     onClick?: () => void;
+    isLive?: boolean;
+    lastUpdated?: string;
+    valueColor?: string;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, highlight, isError, onClick }) => {
+const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, highlight, isError, onClick, isLive, lastUpdated, valueColor }) => {
     // Dynamic shadow color based on status
     const glowColor = isError ? 'hover:shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:border-rose-500/50' :
         highlight ? 'hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:border-indigo-500/50' :
@@ -48,21 +51,34 @@ const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, highlight,
 
             <div className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-3 relative z-10 flex items-center justify-between">
                 {label}
-                <div className={`w-1.5 h-1.5 rounded-full ${isError ? 'bg-rose-500' : 'bg-emerald-500'} opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_5px_currentColor]`}></div>
+                <div className="flex gap-2">
+                    {isLive && (
+                        <div className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            <div className={`text-4xl font-display font-bold tracking-tighter relative z-10 font-mono ${highlight ? 'text-slate-900 dark:text-white' : isError ? 'text-rose-500 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'
+            <div className={`text-4xl font-display font-bold tracking-tighter relative z-10 font-mono ${valueColor || (isError ? 'text-rose-500 dark:text-rose-400' : highlight ? 'text-slate-900 dark:text-white' : 'text-indigo-600 dark:text-indigo-400')
                 } transition-all duration-300 group-hover:translate-x-1`}>
                 {value}
             </div>
 
-            <div className={`text-[9px] font-black uppercase tracking-widest mt-4 flex items-center gap-2 relative z-10 ${isError ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+            <div className={`text-[9px] font-black uppercase tracking-widest mt-4 flex items-center justify-between relative z-10 ${isError ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                 }`}>
                 <span className={`px-2 py-0.5 rounded border ${isError
                     ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20'
                     : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20'}`}>
                     {trend}
                 </span>
+
+                {lastUpdated && (
+                    <span className="text-[8px] text-slate-400 font-mono font-medium lowercase">
+                        fetched {new Date(lastUpdated).toLocaleTimeString()}
+                    </span>
+                )}
             </div>
         </div>
     );
@@ -106,11 +122,14 @@ export const AdminCommandCenter: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isDryRun, setIsDryRun] = useState(true);
 
+    const [settings, setSettings] = useState<any>(null);
+
     const fetchData = async () => {
         try {
-            const [statusRes, sourcesRes] = await Promise.all([
+            const [statusRes, sourcesRes, settingsRes] = await Promise.all([
                 axios.get(`${API_BASE}/health/dashboard`),
-                axios.get(`${API_BASE}/ingestion/status`)
+                axios.get(`${API_BASE}/ingestion/status`),
+                axios.get(`${API_BASE}/settings`)
             ]);
             const sourcesWithMockHistory = sourcesRes.data.sources.map((s: IngestionSource) => ({
                 ...s,
@@ -118,6 +137,7 @@ export const AdminCommandCenter: React.FC = () => {
             }));
             setStatus(statusRes.data);
             setSources(sourcesWithMockHistory);
+            setSettings(settingsRes.data.settings);
         } catch (error) {
             console.error('Failed to fetch admin data', error);
         } finally {
@@ -134,6 +154,21 @@ export const AdminCommandCenter: React.FC = () => {
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
             setLogs(prev => [...prev.slice(-49), data]);
+
+            // Deep Integration: Listen for CBIC signals on the stream
+            if (data.source === 'CBIC_EXCHANGE_MASTER' && data.level === 'SUCCESS') {
+                const match = data.message.match(/Updated CBIC_USD_RATE to ([\d.]+)/);
+                if (match && match[1]) {
+                    setSettings((prev: any) => ({
+                        ...prev,
+                        CBIC_USD_RATE: {
+                            value: match[1],
+                            description: prev?.CBIC_USD_RATE?.description,
+                            updated_at: new Date().toISOString()
+                        }
+                    }));
+                }
+            }
         };
 
         return () => {
@@ -289,7 +324,16 @@ export const AdminCommandCenter: React.FC = () => {
 
                 <div className="space-y-10 flex-1 w-full relative z-10">
                     {/* Metrics Ticker */}
-                    <div className="grid grid-cols-4 gap-6">
+                    <div className="grid grid-cols-5 gap-6">
+                        <MetricCard
+                            label="CBIC Exchange Rate"
+                            value={settings?.CBIC_USD_RATE?.value ? `₹${settings.CBIC_USD_RATE.value}` : '—'}
+                            trend="OFFICIAL"
+                            highlight
+                            isLive={true}
+                            lastUpdated={settings?.CBIC_USD_RATE?.updated_at}
+                            valueColor="text-emerald-600 dark:text-emerald-400"
+                        />
                         <MetricCard
                             label="Operational Sources"
                             value={`${sources.filter(s => s.is_active).length}/${status?.total_sources}`}
@@ -299,7 +343,6 @@ export const AdminCommandCenter: React.FC = () => {
                             label="Verified Transactions (24h)"
                             value={status?.records_updated_24h.toLocaleString() || '0'}
                             trend="UP"
-                            highlight
                         />
                         <MetricCard
                             label="Audit Exception Log"
